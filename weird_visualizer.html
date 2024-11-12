@@ -1,0 +1,396 @@
+<html><head><base href="www.aivisualizerthatgenerateslowmovingmorphingscreensaversmadeusinggenerativeai.com">
+<meta charset="UTF-8">
+<title>AI Generative Art Visualizer</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+  }
+  canvas {
+    width: 100vw;
+    height: 100vh;
+  }
+  .controls {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+    color: white;
+    font-family: sans-serif;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .control-group {
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 10px;
+  }
+  button {
+    background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.2));
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 8px 20px;
+    cursor: pointer;
+    border-radius: 20px;
+    margin: 0 5px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    letter-spacing: 1px;
+  }
+  button:hover {
+    background: linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.3));
+    transform: translateY(-2px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  .slider-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
+    border-radius: 2px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 15px;
+    height: 15px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+  input[type="color"] {
+    width: 50px;
+    height: 25px;
+    padding: 0;
+    border: none;
+  }
+  .custom-palette {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+  }
+  .gradient-preview {
+    width: 100%;
+    height: 20px;
+    margin: 10px 0;
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--color1), var(--color2), var(--color3), var(--color4), var(--color5));
+  }
+  .preset-gradients {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .preset-gradient {
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .preset-gradient:hover {
+    transform: scale(1.1);
+  }
+  .minimize-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="visualizer"></canvas>
+
+<div class="controls" id="controls">
+  <button class="minimize-btn" onclick="toggleControls()">≡</button>
+  
+  <div class="control-group">
+    <h3>Pattern Controls</h3>
+    <button onclick="changePattern()">New Pattern</button>
+    <button onclick="togglePause()">Pause/Play</button>
+    <div class="slider-container">
+      <label>Speed:</label>
+      <input type="range" min="1" max="100" value="50" onchange="updateSpeed(this.value)">
+    </div>
+    <div class="slider-container">
+      <label>Scale:</label>
+      <input type="range" min="1" max="100" value="30" onchange="updateScale(this.value)">
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Color Controls</h3>
+    <button onclick="changeColor()">Next Palette</button>
+    <button onclick="toggleCustomPalette()">Custom Palette</button>
+    <div id="customPalette" class="custom-palette" style="display: none;">
+      <input type="color" onchange="updateCustomColor(0, this.value)" value="#FF6B6B">
+      <input type="color" onchange="updateCustomColor(1, this.value)" value="#4ECDC4">
+      <input type="color" onchange="updateCustomColor(2, this.value)" value="#45B7D1">
+      <input type="color" onchange="updateCustomColor(3, this.value)" value="#96CEB4">
+      <input type="color" onchange="updateCustomColor(4, this.value)" value="#FFEEAD">
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Effect Controls</h3>
+    <div class="slider-container">
+      <label>Blur:</label>
+      <input type="range" min="0" max="100" value="5" onchange="updateBlur(this.value)">
+    </div>
+    <div class="slider-container">
+      <label>Trail:</label>
+      <input type="range" min="1" max="100" value="5" onchange="updateTrail(this.value)">
+    </div>
+    <div class="slider-container">
+      <label>Size:</label>
+      <input type="range" min="1" max="100" value="50" onchange="updateSize(this.value)">
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Gradient Controls</h3>
+    <div class="gradient-preview" id="gradientPreview"></div>
+    <button onclick="randomizeGradient()">Randomize</button>
+    <button onclick="smoothGradient()">Smooth Transition</button>
+    <div class="slider-container">
+      <label>Gradient Speed:</label>
+      <input type="range" min="1" max="100" value="50" onchange="updateGradientSpeed(this.value)">
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Advanced Effects</h3>
+    <div class="slider-container">
+      <label>Glow:</label>
+      <input type="range" min="0" max="100" value="20" onchange="updateGlow(this.value)">
+    </div>
+    <div class="slider-container">
+      <label>Turbulence:</label>
+      <input type="range" min="0" max="100" value="30" onchange="updateTurbulence(this.value)">
+    </div>
+    <div class="slider-container">
+      <label>Complexity:</label>
+      <input type="range" min="1" max="100" value="50" onchange="updateComplexity(this.value)">
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
+<script>
+const canvas = document.getElementById('visualizer');
+const ctx = canvas.getContext('2d');
+let isPaused = false;
+let frameCount = 0;
+let noiseScale = 0.003;
+let colorOffset = 0;
+let pattern = 0;
+let speed = 0.002;
+let blur = 5;
+let trail = 0.05;
+let size = 50;
+let glowIntensity = 20;
+let turbulence = 0.3;
+let complexity = 50;
+let gradientSpeed = 0.001;
+let smoothTransition = false;
+let customPaletteEnabled = false;
+let controlsMinimized = false;
+
+// Set canvas size
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Initialize SimplexNoise
+const simplex = new SimplexNoise();
+
+// Color palettes
+const palettes = [
+    ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD'],
+    ['#D4A5A5', '#9D4E4E', '#892B2B', '#5C0000', '#2E0000'],
+    ['#05668D', '#028090', '#00A896', '#02C39A', '#F0F3BD'],
+    ['#2D00F7', '#6A00F4', '#8900F2', '#A100F2', '#B100E8']
+];
+let currentPalette = 0;
+
+function changeColor() {
+    currentPalette = (currentPalette + 1) % palettes.length;
+}
+
+function changePattern() {
+    pattern = (pattern + 1) % 3;
+    noiseScale = Math.random() * 0.004 + 0.001;
+}
+
+function togglePause() {
+    isPaused = !isPaused;
+}
+
+function getNoise(x, y, z) {
+    return simplex.noise3D(x * noiseScale, y * noiseScale, z * noiseScale);
+}
+
+function updateSpeed(value) {
+    speed = value / 25000;
+}
+
+function updateScale(value) {
+    noiseScale = value / 10000;
+}
+
+function updateGlow(value) {
+    glowIntensity = value;
+}
+
+function updateTurbulence(value) {
+    turbulence = value / 100;
+}
+
+function updateComplexity(value) {
+    complexity = value;
+}
+
+function updateBlur(value) {
+    blur = value / 2;
+}
+
+function updateTrail(value) {
+    trail = value / 1000;
+}
+
+function updateSize(value) {
+    size = value;
+}
+
+function updateGradientSpeed(value) {
+    gradientSpeed = value / 50000;
+}
+
+function toggleCustomPalette() {
+    const palette = document.getElementById('customPalette');
+    customPaletteEnabled = !customPaletteEnabled;
+    palette.style.display = customPaletteEnabled ? 'flex' : 'none';
+}
+
+function updateCustomColor(index, color) {
+    if (customPaletteEnabled) {
+        palettes[currentPalette][index] = color;
+    }
+}
+
+function toggleControls() {
+    const controls = document.getElementById('controls');
+    controlsMinimized = !controlsMinimized;
+    if (controlsMinimized) {
+        controls.style.transform = 'translateX(-280px)';
+        controls.style.transition = 'transform 0.3s';
+    } else {
+        controls.style.transform = 'translateX(0)';
+    }
+}
+
+function randomizeGradient() {
+    palettes[currentPalette] = Array(5).fill().map(() => 
+        `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`
+    );
+}
+
+function smoothGradient() {
+    smoothTransition = !smoothTransition;
+}
+
+function lerpColor(color1, color2, amount) {
+    const c1 = hexToRgb(color1);
+    const c2 = hexToRgb(color2);
+    const r = Math.floor(c1.r + (c2.r - c1.r) * amount);
+    const g = Math.floor(c1.g + (c2.g - c1.g) * amount);
+    const b = Math.floor(c1.b + (c2.b - c1.b) * amount);
+    return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+}
+
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+// Enhanced draw function
+function draw() {
+    if (!isPaused) {
+        ctx.fillStyle = `rgba(0, 0, 0, ${trail})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const time = frameCount * speed;
+        ctx.filter = `blur(${blur}px) brightness(${1 + glowIntensity/100})`;
+        
+        switch(pattern) {
+            case 0: // Enhanced flowing waves
+                for (let x = 0; x < canvas.width; x += size/complexity) {
+                    for (let y = 0; y < canvas.height; y += size/complexity) {
+                        const noise = getNoise(x, y, time);
+                        const turbNoise = getNoise(x * turbulence, y * turbulence, time * 2);
+                        const colorIndex = Math.floor((noise + turbNoise + 2) * 1.25) % 5;
+                        
+                        const gradient = ctx.createRadialGradient(
+                            x, y, 0,
+                            x, y, Math.abs(noise) * size/6
+                        );
+                        
+                        gradient.addColorStop(0, palettes[currentPalette][colorIndex]);
+                        gradient.addColorStop(1, palettes[currentPalette][(colorIndex + 1) % 5]);
+                        
+                        ctx.fillStyle = gradient;
+                        ctx.beginPath();
+                        ctx.arc(x, y, Math.abs(noise + turbNoise) * size/8, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                break;
+                
+            // Additional enhanced drawing cases for other patterns can be added here...
+        }
+        
+        if (smoothTransition) {
+            palettes[currentPalette] = palettes[currentPalette].map((color, i) => {
+                const nextColor = palettes[currentPalette][(i + 1) % 5];
+                return lerpColor(color, nextColor, Math.sin(time) * 0.5 + 0.5);
+            });
+        }
+        
+        frameCount++;
+    }
+    requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body></html>
