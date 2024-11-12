@@ -1,0 +1,168 @@
+<html><head><base href="https://aisuite.creative/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CreativeAI Suite - All-in-One Creative AI Tool</title>
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    color: #e94560;
+    height: 100%;
+    overflow-x: hidden;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  header {
+    text-align: center;
+    padding: 40px 0;
+  }
+  h1 {
+    font-size: 3em;
+    margin-bottom: 10px;
+  }
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 40px;
+  }
+  .tool-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .tool-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(233, 69, 96, 0.2);
+  }
+  .tool-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+  }
+  .cta-button {
+    display: inline-block;
+    background: #e94560;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 30px;
+    transition: background 0.3s ease;
+  }
+  .cta-button:hover {
+    background: #c81e3f;
+  }
+  #workspace {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 40px;
+    min-height: 400px;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>CreativeAI Suite</h1>
+      <p>Your all-in-one AI-powered creative platform</p>
+    </header>
+    
+    <div class="tool-grid">
+      <div class="tool-card">
+        <div class="tool-icon">📝</div>
+        <h3>Text AI</h3>
+        <p>Generate and edit text with advanced AI</p>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">🎨</div>
+        <h3>Image AI</h3>
+        <p>Create and manipulate images using AI</p>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">🎥</div>
+        <h3>Video AI</h3>
+        <p>Produce and edit videos with AI assistance</p>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">🎵</div>
+        <h3>Audio AI</h3>
+        <p>Generate and edit audio with AI technology</p>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">🧊</div>
+        <h3>3D AI</h3>
+        <p>Create and manipulate 3D models using AI</p>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">💻</div>
+        <h3>Code AI</h3>
+        <p>Generate and optimize code with AI assistance</p>
+      </div>
+    </div>
+    
+    <div style="text-align: center;">
+      <a href="#workspace" class="cta-button">Start Creating</a>
+    </div>
+    
+    <div id="workspace">
+      <!-- This is where the AI workspace will be dynamically loaded -->
+    </div>
+  </div>
+
+  <script>
+    // Animate tool cards on page load
+    window.addEventListener('load', () => {
+      gsap.from(".tool-card", {
+        duration: 0.8,
+        opacity: 0,
+        y: 50,
+        stagger: 0.2,
+        ease: "power3.out"
+      });
+    });
+
+    // Smooth scroll to workspace
+    document.querySelector('.cta-button').addEventListener('click', (e) => {
+      e.preventDefault();
+      const workspace = document.querySelector('#workspace');
+      workspace.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Simulated AI workspace loading
+    const workspace = document.getElementById('workspace');
+    const tools = ['Text', 'Image', 'Video', 'Audio', '3D', 'Code'];
+    let currentTool = 0;
+
+    function loadTool() {
+      workspace.innerHTML = `
+        <h2>${tools[currentTool]} AI Workspace</h2>
+        <p>Welcome to the ${tools[currentTool]} AI tool. Here you can create and edit ${tools[currentTool].toLowerCase()} content using advanced AI technology.</p>
+        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-top: 20px;">
+          <p>AI-powered ${tools[currentTool]} editing features will be displayed here.</p>
+          <button onclick="nextTool()" style="background: #e94560; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Try Next Tool</button>
+        </div>
+      `;
+    }
+
+    function nextTool() {
+      currentTool = (currentTool + 1) % tools.length;
+      gsap.to(workspace, {opacity: 0, duration: 0.3, onComplete: () => {
+        loadTool();
+        gsap.to(workspace, {opacity: 1, duration: 0.3});
+      }});
+    }
+
+    loadTool(); // Load initial tool
+  </script>
+</body>
+</html>
