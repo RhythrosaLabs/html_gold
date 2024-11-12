@@ -1,0 +1,593 @@
+<html><head><base href="." />
+<title>Visual Sonic Pi</title>
+<style>
+:root {
+  --primary: #2a2a4a;
+  --secondary: #4a4a8a;
+  --accent: #8a8afa;
+  --text: #ffffff;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: var(--primary);
+  color: var(--text);
+  font-family: monospace;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tab {
+  background: var(--secondary);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--accent);
+}
+
+.editor-container {
+  position: relative;
+}
+
+.code-editor {
+  display: none;
+}
+
+.code-editor.active {
+  display: block;
+}
+
+.sound-library {
+  background: var(--secondary);
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.sound-library h3 {
+  margin-top: 0;
+}
+
+.sound-upload {
+  margin: 10px 0;
+}
+
+.effects-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.effect-control {
+  background: rgba(0,0,0,0.2);
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.effect-control label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.effect-control input {
+  width: 100%;
+}
+
+.code-editor {
+  background: var(--secondary);
+  border-radius: 8px;
+  padding: 20px;
+  height: 500px;
+  position: relative;
+}
+
+#editor {
+  width: 100%;
+  height: 100%;
+  background: #1e1e2e;
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  padding: 10px;
+  resize: none;
+}
+
+.visualization {
+  background: var(--secondary);
+  border-radius: 8px;
+  padding: 20px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#canvas {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  border-radius: 4px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+button {
+  background: var(--accent);
+  color: var(--text);
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-family: monospace;
+  transition: all 0.3s;
+}
+
+button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.waveform {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  height: 60px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+
+.help-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.help-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.help-content {
+  background: var(--secondary);
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.help-content h2 {
+  color: var(--accent);
+  margin-top: 0;
+}
+
+.help-content code {
+  display: block;
+  background: #1e1e2e;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+  white-space: pre;
+}
+
+.close-help {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.help-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--accent);
+  color: var(--text);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="editor-section">
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="1">Buffer 1</div>
+      <div class="tab" data-tab="2">Buffer 2</div>
+      <div class="tab" data-tab="3">Buffer 3</div>
+      <button id="addTab">+</button>
+    </div>
+    
+    <div class="editor-container">
+      <div class="code-editor active" id="editor1">
+        <textarea id="editor" spellcheck="false">
+# Advanced Example with Multiple Layers
+
+# Layer 1 - Bass
+live_loop :bass do
+  use_synth :fm
+  with_fx :distortion, distort: 0.3 do
+    play_pattern_timed [:c2, :c2, :g2, :c2], [1], amp: 0.7
+  end
+end
+
+# Layer 2 - Melody
+live_loop :melody do
+  use_synth :blade
+  with_fx :reverb, room: 0.8 do
+    with_fx :echo, phase: 0.25 do
+      play_pattern_timed [:e4, :g4, :b4, :c5], [0.25], amp: 0.5
+    end
+  end
+end
+
+# Layer 3 - Custom Sample
+with_fx :bitcrusher do
+  sample :custom_drums, rate: 1.5, amp: 0.6
+end</textarea>
+        <div class="waveform" id="waveform1"></div>
+      </div>
+      
+      <div class="code-editor" id="editor2">
+        <textarea id="editor2-text" spellcheck="false">
+# Buffer 2 - Ambient Layer
+live_loop :ambient do
+  use_synth :dark_ambience
+  with_fx :reverb, room: 0.9 do
+    play_chord [:c3, :e3, :g3, :b3], attack: 2, release: 4
+    sleep 4
+  end
+end</textarea>
+        <div class="waveform" id="waveform2"></div>
+      </div>
+      
+      <div class="code-editor" id="editor3">
+        <textarea id="editor3-text" spellcheck="false">
+# Buffer 3 - Rhythm
+live_loop :rhythm do
+  use_synth :tb303
+  with_fx :wobble do
+    play_pattern_timed [:c2, :e2, :f2, :g2], [0.25], 
+      cutoff: rrand(70, 120)
+  end
+end</textarea>
+        <div class="waveform" id="waveform3"></div>
+      </div>
+    </div>
+    
+    <div class="sound-library">
+      <h3>Sound Library</h3>
+      <div class="sound-upload">
+        <input type="file" id="soundUpload" accept="audio/*" multiple>
+        <button id="uploadBtn">Upload Sound</button>
+      </div>
+      <div id="soundList">
+        <!-- Dynamically populated sound list -->
+      </div>
+    </div>
+    
+    <div class="effects-panel">
+      <div class="effect-control">
+        <label>Reverb Room Size</label>
+        <input type="range" min="0" max="1" step="0.1" value="0.5" id="reverbSize">
+      </div>
+      <div class="effect-control">
+        <label>Delay Time</label>
+        <input type="range" min="0" max="1" step="0.1" value="0.3" id="delayTime">
+      </div>
+      <div class="effect-control">
+        <label>Distortion</label>
+        <input type="range" min="0" max="1" step="0.1" value="0" id="distortion">
+      </div>
+      <div class="effect-control">
+        <label>Filter Cutoff</label>
+        <input type="range" min="0" max="127" value="64" id="filterCutoff">
+      </div>
+    </div>
+  </div>
+  
+  <div class="visualization">
+    <canvas id="canvas"></canvas>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="play">▶ Play</button>
+  <button id="stop">⬛ Stop</button>
+  <button id="clear">Clear</button>
+  <button id="save">Save</button>
+  <button id="load">Load</button>
+</div>
+
+<button class="help-button" id="helpButton">?</button>
+
+<div class="help-overlay" id="helpOverlay">
+  <button class="close-help" id="closeHelp">×</button>
+  <div class="help-content">
+    <h2>Advanced Visual Sonic Pi Guide</h2>
+    
+    <h3>Working with Multiple Buffers</h3>
+    <p>Use different buffers to organize your compositions:</p>
+    <code># Buffer 1 - Main melody
+live_loop :melody do
+  use_synth :blade
+  play_pattern_timed [:c4, :e4, :g4], [0.5]
+end</code>
+    
+    <h3>Using Custom Samples</h3>
+    <code># Load and play custom samples
+sample :custom_drums, rate: 1.5
+sample :custom_synth, onset: 2</code>
+    
+    <h3>Advanced Effects Chains</h3>
+    <code># Combine multiple effects
+with_fx :reverb, room: 0.8 do
+  with_fx :echo, phase: 0.25 do
+    with_fx :distortion, distort: 0.3 do
+      play_pattern_timed [:e4, :g4, :b4], [0.25]
+    end
+  end
+end</code>
+    
+    <h3>Live Loops</h3>
+    <code># Create rhythmic patterns
+live_loop :beat do
+  use_synth :tb303
+  with_fx :wobble do
+    play_pattern_timed [:c2, :e2], [0.25],
+      cutoff: rrand(70, 120)
+  end
+end</code>
+    
+    <h3>Keyboard Shortcuts</h3>
+    <p>• Ctrl+Enter: Run current buffer</p>
+    <p>• Ctrl+S: Save composition</p>
+    <p>• Ctrl+L: Load composition</p>
+    <p>• Ctrl+Space: Stop all</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const particles = [];
+
+// Set canvas size
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Particle class for visualization
+class Particle {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.size = Math.random() * 5 + 2;
+    this.speedX = Math.random() * 3 - 1.5;
+    this.speedY = Math.random() * 3 - 1.5;
+    this.life = 1;
+  }
+
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    this.life -= 0.01;
+    this.size *= 0.99;
+  }
+
+  draw() {
+    ctx.fillStyle = `rgba(${this.color}, ${this.life})`;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// Animation loop
+function animate() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  particles.forEach((particle, index) => {
+    particle.update();
+    particle.draw();
+    if (particle.life <= 0) particles.splice(index, 1);
+  });
+  
+  requestAnimationFrame(animate);
+}
+animate();
+
+// Audio setup
+const synth = new Tone.PolySynth().toDestination();
+const reverb = new Tone.Reverb(2).toDestination();
+synth.connect(reverb);
+
+// Play button handler
+document.getElementById('play').addEventListener('click', async () => {
+  await Tone.start();
+  const code = document.getElementById('editor').value;
+  
+  // Parse and play the code
+  const notes = code.match(/:[a-g][0-9]/g);
+  if (notes) {
+    const sequence = new Tone.Sequence((time, note) => {
+      synth.triggerAttackRelease(note.replace(':', ''), '8n', time);
+      
+      // Create particles on note play
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const color = `${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}`;
+      for (let i = 0; i < 5; i++) {
+        particles.push(new Particle(x, y, color));
+      }
+    }, notes.map(note => note.replace(':', '')), '4n');
+    
+    sequence.start();
+    Tone.Transport.start();
+  }
+});
+
+// Stop button handler
+document.getElementById('stop').addEventListener('click', () => {
+  Tone.Transport.stop();
+  synth.releaseAll();
+});
+
+// Clear button handler
+document.getElementById('clear').addEventListener('click', () => {
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  particles.length = 0;
+});
+
+// Help overlay functionality
+const helpButton = document.getElementById('helpButton');
+const helpOverlay = document.getElementById('helpOverlay');
+const closeHelp = document.getElementById('closeHelp');
+
+helpButton.addEventListener('click', () => {
+  helpOverlay.classList.add('active');
+});
+
+closeHelp.addEventListener('click', () => {
+  helpOverlay.classList.remove('active');
+});
+
+helpOverlay.addEventListener('click', (e) => {
+  if (e.target === helpOverlay) {
+    helpOverlay.classList.remove('active');
+  }
+});
+
+// Add new functionality for tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.code-editor').forEach(e => e.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`editor${tab.dataset.tab}`).classList.add('active');
+  });
+});
+
+// Sound library handling
+const soundLibrary = {};
+
+document.getElementById('soundUpload').addEventListener('change', async (e) => {
+  const files = e.target.files;
+  for (let file of files) {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const arrayBuffer = e.target.result;
+      const audioBuffer = await Tone.context.decodeAudioData(arrayBuffer);
+      soundLibrary[file.name] = audioBuffer;
+      updateSoundList();
+    };
+    reader.readAsArrayBuffer(file);
+  }
+});
+
+function updateSoundList() {
+  const soundList = document.getElementById('soundList');
+  soundList.innerHTML = '';
+  Object.keys(soundLibrary).forEach(name => {
+    const div = document.createElement('div');
+    div.textContent = name;
+    soundList.appendChild(div);
+  });
+}
+
+// Effects handling
+const effects = {
+  reverb: new Tone.Reverb(2).toDestination(),
+  delay: new Tone.FeedbackDelay(0.3, 0.5).toDestination(),
+  distortion: new Tone.Distortion(0).toDestination(),
+  filter: new Tone.Filter(1000, "lowpass").toDestination()
+};
+
+document.getElementById('reverbSize').addEventListener('input', (e) => {
+  effects.reverb.decay = e.target.value * 10;
+});
+
+document.getElementById('delayTime').addEventListener('input', (e) => {
+  effects.delay.delayTime.value = e.target.value;
+});
+
+document.getElementById('distortion').addEventListener('input', (e) => {
+  effects.distortion.distortion = e.target.value;
+});
+
+document.getElementById('filterCutoff').addEventListener('input', (e) => {
+  effects.filter.frequency.value = e.target.value * 100;
+});
+
+// Save/Load functionality
+document.getElementById('save').addEventListener('click', () => {
+  const compositions = {};
+  document.querySelectorAll('.code-editor textarea').forEach((editor, i) => {
+    compositions[`buffer${i+1}`] = editor.value;
+  });
+  localStorage.setItem('compositions', JSON.stringify(compositions));
+});
+
+document.getElementById('load').addEventListener('click', () => {
+  const compositions = JSON.parse(localStorage.getItem('compositions'));
+  if (compositions) {
+    Object.entries(compositions).forEach(([buffer, code]) => {
+      document.querySelector(`#${buffer} textarea`).value = code;
+    });
+  }
+});
+</script>
+
+</body></html>
