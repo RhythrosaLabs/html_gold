@@ -20,7 +20,7 @@
 
         #toolbar {
             display: grid;
-            grid-template-columns: repeat(14, 1fr);
+            grid-template-columns: repeat(15, 1fr);
             gap: 4px;
             background: rgba(0, 0, 0, 0.85);
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
@@ -329,6 +329,7 @@
         <button class="tool-btn" id="play-mode" data-tooltip="Test your world"><i class="fas fa-play"></i></button>
         <button class="tool-btn" id="save-world" data-tooltip="Export your creation"><i class="fas fa-save"></i></button>
         <button class="tool-btn" id="settings" data-tooltip="Settings"><i class="fas fa-cog"></i></button>
+        <button class="tool-btn" id="randomize-world" data-tooltip="Generate Random World"><i class="fas fa-dice"></i></button>
     </div>
 
     <div class="settings-panel">
@@ -384,11 +385,45 @@
                 <label>Object Opacity</label>
                 <input type="range" class="slider" id="object-opacity" min="0.1" max="1" value="1" step="0.1">
             </div>
-            <div class="graphics-settings">
-                <h4>Graphics Settings</h4>
+            <div class="game-settings">
+                <h4>Game Settings</h4>
+                <div class="slider-container">
+                    <label>Player Speed</label>
+                    <input type="range" class="slider" id="player-speed" min="0.1" max="1" value="0.2" step="0.1">
+                </div>
+                <div class="slider-container">
+                    <label>Jump Height</label>
+                    <input type="range" class="slider" id="jump-height" min="0.2" max="0.5" value="0.35" step="0.05">
+                </div>
+                <div class="slider-container">
+                    <label>Gravity Strength</label>
+                    <input type="range" class="slider" id="gravity-strength" min="0.01" max="0.05" value="0.02" step="0.01">
+                </div>
+            </div>
+            <div class="world-settings">
+                <h4>World Settings</h4>
+                <div class="slider-container">
+                    <label>World Size</label>
+                    <input type="range" class="slider" id="world-size" min="50" max="200" value="100" step="10">
+                </div>
                 <div class="checkbox-container">
                     <label>
-                        <input type="checkbox" id="shadows-enabled">
+                        <input type="checkbox" id="enable-day-night">
+                        Enable Day/Night Cycle
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <label>
+                        <input type="checkbox" id="enable-weather">
+                        Enable Weather Effects
+                    </label>
+                </div>
+            </div>
+            <div class="world-settings">
+                <h4>Rendering Settings</h4>
+                <div class="checkbox-container">
+                    <label>
+                        <input type="checkbox" id="shadows-enabled" checked>
                         Enable Shadows
                     </label>
                 </div>
@@ -400,60 +435,22 @@
                 </div>
                 <div class="checkbox-container">
                     <label>
-                        <input type="checkbox" id="smooth-shading">
+                        <input type="checkbox" id="smooth-shading" checked>
                         Smooth Shading
                     </label>
                 </div>
             </div>
-            <div class="object-settings" style="display:none;">
-                <h4>Object Properties</h4>
-                <div class="slider-container">
-                    <label>Scale X</label>
-                    <input type="range" class="slider" id="scale-x" min="0.1" max="5" value="1" step="0.1">
-                </div>
-                <div class="slider-container">
-                    <label>Scale Y</label>
-                    <input type="range" class="slider" id="scale-y" min="0.1" max="5" value="1" step="0.1">
-                </div>
-                <div class="slider-container">
-                    <label>Scale Z</label>
-                    <input type="range" class="slider" id="scale-z" min="0.1" max="5" value="1" step="0.1">
-                </div>
-                <div class="color-picker">
-                    <label>Object Color</label>
-                    <input type="color" id="object-color" value="#ffffff">
-                </div>
-                <div class="slider-container">
-                    <label>Rotation Y</label>
-                    <input type="range" class="slider" id="rotation-y" min="0" max="360" value="0">
-                </div>
+            <div class="slider-container">
+                <label>Player Speed</label>
+                <input type="range" class="slider" id="player-speed" min="0.1" max="1" value="0.2" step="0.1">
             </div>
-            <div class="camera-settings">
-                <h4>Camera Mode</h4>
-                <div class="radio-container">
-                    <label>
-                        <input type="radio" name="camera-mode" value="first-person" checked>
-                        First Person
-                    </label>
-                </div>
-                <div class="radio-container">
-                    <label>
-                        <input type="radio" name="camera-mode" value="third-person">
-                        Third Person
-                    </label>
-                </div>
-                <div class="radio-container">
-                    <label>
-                        <input type="radio" name="camera-mode" value="overhead">
-                        Overhead View
-                    </label>
-                </div>
-                <div class="radio-container">
-                    <label>
-                        <input type="radio" name="camera-mode" value="karting">
-                        Karting Mode
-                    </label>
-                </div>
+            <div class="slider-container">
+                <label>Jump Height</label>
+                <input type="range" class="slider" id="jump-height" min="0.2" max="0.5" value="0.35" step="0.05">
+            </div>
+            <div class="slider-container">
+                <label>Gravity Strength</label>
+                <input type="range" class="slider" id="gravity-strength" min="0.01" max="0.05" value="0.02" step="0.01">
             </div>
         </div>
     </div>
@@ -719,7 +716,7 @@
         let isPlayMode = false;
         const keysPressed = {};
 
-        const moveSpeed = 0.2;
+        let moveSpeed = 0.2;
 
         document.addEventListener('keydown', (e) => {
             keysPressed[e.key.toLowerCase()] = true;
@@ -948,11 +945,10 @@
             scene.add(rock);
         }
 
-        function addStructureAt(point) {
-            const structureType = prompt('Choose structure type: house/tower/temple/castle/pyramid');
+        function addStructureAt(point, type) {
             const building = new THREE.Group();
             
-            switch(structureType) {
+            switch(type) {
                 case 'house':
                     const houseGeometry = new THREE.BoxGeometry(5, 5, 5);
                     const houseMaterial = new THREE.MeshPhongMaterial({ color: document.getElementById('structure-color').value });
@@ -1096,6 +1092,74 @@
             });
         }
 
+        function randomizeWorld() {
+            // Clear existing objects except floor
+            scene.children.forEach(child => {
+                if (child !== floor && child !== ambientLight && child !== dirLight) {
+                    scene.remove(child);
+                }
+            });
+
+            // Generate random terrain features
+            const numTerrainFeatures = Math.floor(Math.random() * 10) + 5;
+            for (let i = 0; i < numTerrainFeatures; i++) {
+                const point = new THREE.Vector3(
+                    (Math.random() - 0.5) * 80,
+                    0,
+                    (Math.random() - 0.5) * 80
+                );
+                addTerrainAt(point);
+            }
+
+            // Add random ramps
+            const numRamps = Math.floor(Math.random() * 5) + 3;
+            for (let i = 0; i < numRamps; i++) {
+                const point = new THREE.Vector3(
+                    (Math.random() - 0.5) * 80,
+                    0,
+                    (Math.random() - 0.5) * 80
+                );
+                addRampAt(point);
+            }
+
+            // Add random structures
+            const structureTypes = ['house', 'tower', 'temple'];
+            const numStructures = Math.floor(Math.random() * 5) + 2;
+            for (let i = 0; i < numStructures; i++) {
+                const point = new THREE.Vector3(
+                    (Math.random() - 0.5) * 80,
+                    0,
+                    (Math.random() - 0.5) * 80
+                );
+                const type = structureTypes[Math.floor(Math.random() * structureTypes.length)];
+                addStructureAt(point, type);
+            }
+
+            // Add random vegetation
+            const numVegetation = Math.floor(Math.random() * 20) + 10;
+            for (let i = 0; i < numVegetation; i++) {
+                const point = new THREE.Vector3(
+                    (Math.random() - 0.5) * 80,
+                    0,
+                    (Math.random() - 0.5) * 80
+                );
+                addVegetationAt(point);
+            }
+
+            // Add random moving platforms
+            const numPlatforms = Math.floor(Math.random() * 3) + 2;
+            for (let i = 0; i < numPlatforms; i++) {
+                const point = new THREE.Vector3(
+                    (Math.random() - 0.5) * 80,
+                    0,
+                    (Math.random() - 0.5) * 80
+                );
+                addMovingObject(point);
+            }
+        }
+
+        document.getElementById('randomize-world').addEventListener('click', randomizeWorld);
+
         document.getElementById('save-world').addEventListener('click', () => {
             const format = prompt('Save as (json/fbx):', 'json');
             if(format === 'json') {
@@ -1175,25 +1239,7 @@
                     if (e.target.checked) {
                         child.geometry.computeVertexNormals();
                     } else {
-                        child.geometry.computeVertexNormals();
-                        const positionAttribute = child.geometry.getAttribute('position');
-                        const normalAttribute = child.geometry.getAttribute('normal');
-                        
-                        for (let i = 0; i < positionAttribute.count; i += 3) {
-                            const vA = new THREE.Vector3().fromBufferAttribute(positionAttribute, i);
-                            const vB = new THREE.Vector3().fromBufferAttribute(positionAttribute, i + 1);
-                            const vC = new THREE.Vector3().fromBufferAttribute(positionAttribute, i + 2);
-                            
-                            const cb = new THREE.Vector3().subVectors(vC, vB);
-                            const ab = new THREE.Vector3().subVectors(vA, vB);
-                            const normal = new THREE.Vector3().crossVectors(cb, ab).normalize();
-                            
-                            normalAttribute.setXYZ(i, normal.x, normal.y, normal.z);
-                            normalAttribute.setXYZ(i + 1, normal.x, normal.y, normal.z);
-                            normalAttribute.setXYZ(i + 2, normal.x, normal.y, normal.z);
-                        }
-                        
-                        normalAttribute.needsUpdate = true;
+                        child.geometry.computeFlatVertexNormals();
                     }
                     child.material.needsUpdate = true;
                 }
@@ -1224,6 +1270,50 @@
             const panel = document.querySelector('.settings-panel');
             panel.classList.toggle('collapsed');
         });
+
+        document.getElementById('player-speed').addEventListener('input', (e) => {
+            moveSpeed = parseFloat(e.target.value);
+        });
+
+        document.getElementById('jump-height').addEventListener('input', (e) => {
+            if (player) player.jumpForce = parseFloat(e.target.value);
+        });
+
+        document.getElementById('gravity-strength').addEventListener('input', (e) => {
+            if (player) player.gravity = parseFloat(e.target.value);
+        });
+
+        document.getElementById('world-size').addEventListener('input', (e) => {
+            const size = parseFloat(e.target.value);
+            floor.scale.set(size/100, 1, size/100);
+        });
+
+        document.getElementById('enable-day-night').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                startDayNightCycle();
+            } else {
+                stopDayNightCycle();
+            }
+        });
+
+        let dayNightCycle;
+
+        function startDayNightCycle() {
+            const cycleSpeed = 0.001;
+            dayNightCycle = setInterval(() => {
+                dirLight.position.applyAxisAngle(new THREE.Vector3(0, 0, 1), cycleSpeed);
+                const intensity = Math.sin(dirLight.position.y) * 0.5 + 0.5;
+                dirLight.intensity = intensity;
+                ambientLight.intensity = intensity * 0.5;
+            }, 50);
+        }
+
+        function stopDayNightCycle() {
+            clearInterval(dayNightCycle);
+            dirLight.position.set(50, 50, 50);
+            dirLight.intensity = 0.8;
+            ambientLight.intensity = 0.5;
+        }
     </script>
 </body>
 </html>
