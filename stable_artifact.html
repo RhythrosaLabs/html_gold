@@ -1,0 +1,260 @@
+<html><head><base href="https://claude-stable-assistant-hybrid.com/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude-Stable Assistant Hybrid</title>
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #ffffff;
+    height: 100%;
+    color: #202123;
+  }
+  .container {
+    display: flex;
+    height: 100vh;
+  }
+  .sidebar {
+    width: 260px;
+    background-color: #f7f7f8;
+    border-right: 1px solid #e5e5e5;
+    display: flex;
+    flex-direction: column;
+  }
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .top-bar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .input-container {
+    background-color: #ffffff;
+    border-top: 1px solid #e5e5e5;
+    padding: 20px;
+  }
+  .input-box {
+    width: 100%;
+    min-height: 60px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 16px;
+    resize: none;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  .new-chat-btn {
+    background-color: #10a37f;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    width: 100%;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .chat-history {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+  }
+  .chat-item {
+    padding: 10px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: #353740;
+  }
+  .chat-item:hover {
+    background-color: #ececf1;
+  }
+  .user-settings {
+    padding: 20px;
+    border-top: 1px solid #e5e5e5;
+  }
+  .message {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+  }
+  .message-content {
+    background-color: #f7f7f8;
+    border-radius: 6px;
+    padding: 12px 16px;
+    max-width: 85%;
+    line-height: 1.5;
+  }
+  .user-message .message-content {
+    background-color: #10a37f;
+    color: white;
+    margin-left: auto;
+  }
+  .assistant-message .message-content {
+    background-color: #f7f7f8;
+  }
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    margin-right: 16px;
+  }
+  .send-button {
+    position: absolute;
+    right: 30px;
+    bottom: 30px;
+    background-color: #10a37f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .artifacts-panel {
+    width: 300px;
+    background-color: #f7f7f8;
+    border-left: 1px solid #e5e5e5;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .artifact {
+    background-color: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .artifact img {
+    max-width: 100%;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button class="new-chat-btn">+ New chat</button>
+    </div>
+    <div class="chat-history">
+      <div class="chat-item">Previous chat 1</div>
+      <div class="chat-item">Previous chat 2</div>
+      <div class="chat-item">Previous chat 3</div>
+    </div>
+    <div class="user-settings">
+      <div>User settings</div>
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="top-bar">
+      <div>Claude-Stable Assistant Hybrid</div>
+      <div>Options</div>
+    </div>
+    <div class="chat-container" id="chatContainer">
+      <div class="message assistant-message">
+        <img src="https://claude-stable-assistant-hybrid.com/assistant-avatar.png" alt="Assistant Avatar" class="avatar">
+        <div class="message-content">
+          Hello! I'm a hybrid AI assistant combining features of Claude and Stable Assistant. How can I help you today?
+        </div>
+      </div>
+    </div>
+    <div class="input-container">
+      <textarea class="input-box" placeholder="Send a message..." id="userInput"></textarea>
+      <button class="send-button" id="sendButton">Send</button>
+    </div>
+  </div>
+  <div class="artifacts-panel" id="artifactsPanel">
+    <h3>Artifacts</h3>
+    <!-- Artifacts will be dynamically added here -->
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+  const userInput = document.getElementById('userInput');
+  const sendButton = document.getElementById('sendButton');
+  const chatContainer = document.getElementById('chatContainer');
+  const artifactsPanel = document.getElementById('artifactsPanel');
+
+  function sendMessage() {
+    const message = userInput.value.trim();
+    if (message) {
+      addMessage('user', message);
+      userInput.value = '';
+      // Simulate assistant response
+      setTimeout(() => {
+        addMessage('assistant', "I'm a hybrid AI assistant. I can help with various tasks, including generating images or code. What would you like to do?");
+        // Simulate adding an artifact
+        addArtifact('image', 'https://claude-stable-assistant-hybrid.com/sample-image.jpg', 'A sample generated image');
+      }, 1000);
+    }
+  }
+
+  sendButton.addEventListener('click', sendMessage);
+  userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  function addMessage(sender, content) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    
+    const avatar = document.createElement('img');
+    avatar.className = 'avatar';
+    avatar.src = `https://claude-stable-assistant-hybrid.com/${sender}-avatar.png`;
+    avatar.alt = `${sender.charAt(0).toUpperCase() + sender.slice(1)} Avatar`;
+    
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    messageContent.textContent = content;
+    
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(messageContent);
+    
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function addArtifact(type, src, description) {
+    const artifactDiv = document.createElement('div');
+    artifactDiv.className = 'artifact';
+    
+    if (type === 'image') {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = description;
+      artifactDiv.appendChild(img);
+    }
+    
+    const descriptionP = document.createElement('p');
+    descriptionP.textContent = description;
+    artifactDiv.appendChild(descriptionP);
+    
+    artifactsPanel.appendChild(artifactDiv);
+  }
+});
+</script>
+</body>
+</html>
