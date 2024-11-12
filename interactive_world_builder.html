@@ -1,0 +1,1229 @@
+<html><head><base href="interactiverealtimegameworldbuilder.com">
+    <title>Interactive Realtime Game World Builder Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #toolbar {
+            display: grid;
+            grid-template-columns: repeat(14, 1fr);
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.85);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            padding: 12px;
+            width: fit-content;
+            margin: 0 auto;
+            height: 80px;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .tool-btn {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            font-size: 12px;
+            min-width: 35px;
+            min-height: 35px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            margin: 3px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .tool-btn:active {
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .active-tool {
+            background: rgba(255, 255, 255, 0.25);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        .tool-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.95);
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            margin-top: 8px;
+            pointer-events: none;
+        }
+
+        .tool-btn:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+            z-index: 2000;
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #1a1a1a, #2a1a2a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loader {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader::after {
+            content: 'Loading...';
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .settings-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+            transition: transform 0.3s ease-out;
+            transform-origin: top right;
+            min-width: 250px;
+        }
+
+        .settings-panel.collapsed {
+            transform: scale(0);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 5px;
+            border-bottom: 1px solid #444;
+            font-weight: 500;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+        }
+
+        .settings-content {
+            transition: max-height 0.3s ease-out;
+            overflow: hidden;
+            padding: 0 10px;
+        }
+
+        .slider-container {
+            margin: 10px 0;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .color-picker {
+            margin: 5px 0;
+        }
+
+        #minimap {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border-radius: 10px;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        #minimap:hover {
+            transform: scale(1.05);
+        }
+
+        .background-stars {
+            display: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 1s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+
+        .settings-header label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        #escape-hint {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: white;
+            z-index: 1000;
+        }
+
+        .slider-container label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .color-settings {
+            margin-top: 15px;
+        }
+
+        .checkbox-container {
+            margin: 8px 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .radio-container {
+            margin: 8px 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .radio-container label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-container input[type="radio"] {
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/FBXExporter.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader"></div>
+    </div>
+
+    <div id="escape-hint">Press ESC to return to build mode</div>
+
+    <div id="toolbar">
+        <button class="tool-btn" id="add-terrain" data-tooltip="Create terrain features"><i class="fas fa-mountain"></i></button>
+        <button class="tool-btn" id="add-water" data-tooltip="Add water bodies"><i class="fas fa-water"></i></button>
+        <button class="tool-btn" id="add-vegetation" data-tooltip="Place trees and plants"><i class="fas fa-tree"></i></button>
+        <button class="tool-btn" id="add-rocks" data-tooltip="Add rock formations"><i class="fas fa-dice-d20"></i></button>
+        <button class="tool-btn" id="add-path" data-tooltip="Create pathways"><i class="fas fa-road"></i></button>
+        <button class="tool-btn" id="add-structure" data-tooltip="Build structures"><i class="fas fa-home"></i></button>
+        <button class="tool-btn" id="add-light" data-tooltip="Place light sources"><i class="fas fa-lightbulb"></i></button>
+        <button class="tool-btn" id="add-portal" data-tooltip="Create portals"><i class="fas fa-portal-enter"></i></button>
+        <button class="tool-btn" id="add-bridge" data-tooltip="Build bridges"><i class="fas fa-archway"></i></button>
+        <button class="tool-btn" id="add-wall" data-tooltip="Add walls"><i class="fas fa-wall"></i></button>
+        <button class="tool-btn" id="add-moving" data-tooltip="Add moving object"><i class="fas fa-cube"></i></button>
+        <button class="tool-btn" id="add-ramp" data-tooltip="Add a ramp"><i class="fas fa-angle-up"></i></button>
+        <button class="tool-btn" id="play-mode" data-tooltip="Test your world"><i class="fas fa-play"></i></button>
+        <button class="tool-btn" id="save-world" data-tooltip="Export your creation"><i class="fas fa-save"></i></button>
+        <button class="tool-btn" id="settings" data-tooltip="Settings"><i class="fas fa-cog"></i></button>
+    </div>
+
+    <div class="settings-panel">
+        <div class="settings-header">
+            <h3>Settings</h3>
+            <span>▼</span>
+        </div>
+        <div class="settings-content">
+            <div class="slider-container">
+                <label>Terrain Height</label>
+                <input type="range" class="slider" id="terrain-height" min="1" max="20" value="10">
+            </div>
+            <div class="slider-container">
+                <label>Water Level</label>
+                <input type="range" class="slider" id="water-level" min="0" max="10" value="0">
+            </div>
+            <div class="slider-container">
+                <label>Vegetation Density</label>
+                <input type="range" class="slider" id="vegetation-density" min="1" max="100" value="50">
+            </div>
+            <div class="color-picker">
+                <label>Terrain Color</label>
+                <input type="color" id="terrain-color" value="#3b7d4f">
+            </div>
+            <div class="color-settings">
+                <h4>Color Settings</h4>
+                <div class="color-picker">
+                    <label>Structure Color</label>
+                    <input type="color" id="structure-color" value="#808080">
+                </div>
+                <div class="color-picker">
+                    <label>Rock Color</label>
+                    <input type="color" id="rock-color" value="#808080">
+                </div>
+                <div class="color-picker">
+                    <label>Vegetation Color</label>
+                    <input type="color" id="vegetation-color" value="#2d5a27">
+                </div>
+                <div class="color-picker">
+                    <label>Path Color</label>
+                    <input type="color" id="path-color" value="#8b4513">
+                </div>
+            </div>
+            <div class="slider-container">
+                <label>Ambient Light Intensity</label>
+                <input type="range" class="slider" id="ambient-light" min="0" max="2" value="1" step="0.1">
+            </div>
+            <div class="slider-container">
+                <label>Fog Density</label>
+                <input type="range" class="slider" id="fog-density" min="0" max="0.1" value="0.015" step="0.001">
+            </div>
+            <div class="slider-container">
+                <label>Object Opacity</label>
+                <input type="range" class="slider" id="object-opacity" min="0.1" max="1" value="1" step="0.1">
+            </div>
+            <div class="graphics-settings">
+                <h4>Graphics Settings</h4>
+                <div class="checkbox-container">
+                    <label>
+                        <input type="checkbox" id="shadows-enabled">
+                        Enable Shadows
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <label>
+                        <input type="checkbox" id="wireframe-mode">
+                        Wireframe Mode
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <label>
+                        <input type="checkbox" id="smooth-shading">
+                        Smooth Shading
+                    </label>
+                </div>
+            </div>
+            <div class="object-settings" style="display:none;">
+                <h4>Object Properties</h4>
+                <div class="slider-container">
+                    <label>Scale X</label>
+                    <input type="range" class="slider" id="scale-x" min="0.1" max="5" value="1" step="0.1">
+                </div>
+                <div class="slider-container">
+                    <label>Scale Y</label>
+                    <input type="range" class="slider" id="scale-y" min="0.1" max="5" value="1" step="0.1">
+                </div>
+                <div class="slider-container">
+                    <label>Scale Z</label>
+                    <input type="range" class="slider" id="scale-z" min="0.1" max="5" value="1" step="0.1">
+                </div>
+                <div class="color-picker">
+                    <label>Object Color</label>
+                    <input type="color" id="object-color" value="#ffffff">
+                </div>
+                <div class="slider-container">
+                    <label>Rotation Y</label>
+                    <input type="range" class="slider" id="rotation-y" min="0" max="360" value="0">
+                </div>
+            </div>
+            <div class="camera-settings">
+                <h4>Camera Mode</h4>
+                <div class="radio-container">
+                    <label>
+                        <input type="radio" name="camera-mode" value="first-person" checked>
+                        First Person
+                    </label>
+                </div>
+                <div class="radio-container">
+                    <label>
+                        <input type="radio" name="camera-mode" value="third-person">
+                        Third Person
+                    </label>
+                </div>
+                <div class="radio-container">
+                    <label>
+                        <input type="radio" name="camera-mode" value="overhead">
+                        Overhead View
+                    </label>
+                </div>
+                <div class="radio-container">
+                    <label>
+                        <input type="radio" name="camera-mode" value="karting">
+                        Karting Mode
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="minimap"></div>
+
+    <div id="canvas-container"></div>
+
+    <script>
+        class Kart extends THREE.Group {
+            constructor() {
+                super();
+                
+                const bodyGeom = new THREE.BoxGeometry(2, 0.75, 3);
+                const bodyMat = new THREE.MeshPhongMaterial({color: 0xff0000});
+                this.body = new THREE.Mesh(bodyGeom, bodyMat);
+                this.add(this.body);
+
+                const wheelGeom = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
+                const wheelMat = new THREE.MeshPhongMaterial({color: 0x333333});
+                
+                this.wheels = [];
+                const wheelPositions = [
+                    [-0.8, -0.3, 1], 
+                    [0.8, -0.3, 1],  
+                    [-0.8, -0.3, -1], 
+                    [0.8, -0.3, -1]   
+                ];
+
+                wheelPositions.forEach(pos => {
+                    const wheel = new THREE.Mesh(wheelGeom, wheelMat);
+                    wheel.position.set(...pos);
+                    wheel.rotation.z = Math.PI / 2;
+                    this.add(wheel);
+                    this.wheels.push(wheel);
+                });
+
+                const seatGeom = new THREE.BoxGeometry(1.5, 0.4, 1);
+                const seatMat = new THREE.MeshPhongMaterial({color: 0x666666});
+                this.seat = new THREE.Mesh(seatGeom, seatMat);
+                this.seat.position.y = 0.4;
+                this.add(this.seat);
+
+                this.velocity = new THREE.Vector3();
+                this.speed = 0;
+                this.steering = 0;
+                this.maxSpeed = 0.5;
+                this.acceleration = 0.01;
+                this.deceleration = 0.005;
+                this.steeringSpeed = 0.05;
+                this.maxSteering = Math.PI / 4;
+            }
+
+            update() {
+                if (keysPressed['w']) {
+                    this.speed = Math.min(this.speed + this.acceleration, this.maxSpeed);
+                } else if (keysPressed['s']) {
+                    this.speed = Math.max(this.speed - this.acceleration, -this.maxSpeed / 2);
+                } else {
+                    this.speed *= (1 - this.deceleration);
+                }
+
+                if (keysPressed['a']) {
+                    this.steering = Math.min(this.steering + this.steeringSpeed, this.maxSteering);
+                } else if (keysPressed['d']) {
+                    this.steering = Math.max(this.steering - this.steeringSpeed, -this.maxSteering);
+                } else {
+                    this.steering *= 0.9;
+                }
+
+                this.rotation.y += this.steering * this.speed;
+                
+                const movement = new THREE.Vector3(0, 0, -this.speed);
+                movement.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.rotation.y);
+                this.position.add(movement);
+
+                this.wheels.forEach(wheel => {
+                    wheel.rotation.x += this.speed * 0.5;
+                });
+            }
+        }
+
+        class Character extends THREE.Group {
+            constructor() {
+                super();
+                const bodyGeom = new THREE.BoxGeometry(0.5, 1, 0.5);
+                const headGeom = new THREE.SphereGeometry(0.5, 8, 8);
+                const bodyMat = new THREE.MeshPhongMaterial({color: 0x00ff00});
+                
+                this.body = new THREE.Mesh(bodyGeom, bodyMat);
+                this.head = new THREE.Mesh(headGeom, bodyMat);
+                
+                this.head.position.y = 0.75;
+                
+                this.add(this.body);
+                this.add(this.head);
+                
+                this.velocity = new THREE.Vector3();
+                this.isGrounded = false;
+                this.isCrouching = false;
+                this.canShoot = true;
+                this.shootCooldown = 20;
+            }
+
+            shoot() {
+                if (!this.canShoot) return;
+                
+                const bulletGeom = new THREE.SphereGeometry(0.2);
+                const bulletMat = new THREE.MeshPhongMaterial({color: 0xff0000});
+                const bullet = new THREE.Mesh(bulletGeom, bulletMat);
+                
+                const direction = new THREE.Vector3();
+                camera.getWorldDirection(direction);
+                
+                bullet.position.copy(this.position);
+                bullet.position.y += 1.5;
+                
+                bullet.userData.velocity = direction.multiplyScalar(0.5);
+                bullet.userData.isProjectile = true;
+                
+                scene.add(bullet);
+                if (!window.projectiles) window.projectiles = [];
+                window.projectiles.push(bullet);
+                
+                this.canShoot = false;
+                setTimeout(() => this.canShoot = true, this.shootCooldown);
+            }
+
+            jump() {
+                if (this.isGrounded) {
+                    this.velocity.y = 0.35;
+                    this.isGrounded = false;
+                }
+            }
+
+            crouch() {
+                if (!this.isCrouching) {
+                    this.scale.y = 0.5;
+                    this.position.y -= 0.5;
+                    this.isCrouching = true;
+                }
+            }
+
+            uncrouch() {
+                if (this.isCrouching) {
+                    this.scale.y = 1;
+                    this.position.y += 0.5;
+                    this.isCrouching = false;
+                }
+            }
+        }
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(50, 50, 50);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.camera.near = 0.5;
+        dirLight.shadow.camera.far = 500;
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        camera.position.set(0, 30, 50);
+        camera.lookAt(scene.position);
+
+        scene.fog = new THREE.FogExp2(0x000000, 0.015);
+
+        const floorGeometry = new THREE.PlaneGeometry(100, 100);
+        const floorMaterial = new THREE.MeshPhongMaterial({ color: 0x404040 });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        let currentCameraMode = 'first-person';
+
+        function updateCameraPosition() {
+            if (!player || !isPlayMode) return;
+
+            switch(currentCameraMode) {
+                case 'first-person':
+                    camera.position.copy(player.position);
+                    camera.position.y += 1.6;
+                    break;
+                case 'third-person':
+                    camera.position.copy(player.position);
+                    camera.position.y += 3;
+                    camera.position.z += 5;
+                    camera.lookAt(player.position);
+                    break;
+                case 'overhead':
+                    camera.position.copy(player.position);
+                    camera.position.y = 20;
+                    camera.lookAt(player.position);
+                    break;
+                case 'karting':
+                    if (player instanceof Kart) {
+                        const offset = new THREE.Vector3(0, 3, 8);
+                        camera.position.copy(player.position).add(offset);
+                        camera.lookAt(player.position);
+                    }
+                    break;
+            }
+        }
+
+        function addRampAt(point) {
+            const rampGeometry = new THREE.BufferGeometry();
+            const vertices = new Float32Array([
+                -4, 0, 2,
+                4, 0, 2,
+                -4, 0, -2,
+                4, 0, -2,
+                0, 4, 0
+            ]);
+            const indices = new Uint16Array([
+                0, 1, 4,
+                2, 3, 4,
+                0, 2, 4,
+                1, 3, 4,
+                0, 1, 2,
+                1, 2, 3
+            ]);
+            rampGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+            rampGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
+            rampGeometry.computeVertexNormals();
+            const rampMaterial = new THREE.MeshPhongMaterial({
+                color: 0x808080,
+                shininess: 30,
+                specular: 0x404040
+            });
+            const ramp = new THREE.Mesh(rampGeometry, rampMaterial);
+            ramp.castShadow = true;
+            ramp.receiveShadow = true;
+            ramp.position.copy(point);
+            ramp.position.y += 0.1;
+            ramp.userData.isRamp = true;
+            scene.add(ramp);
+            const collisionBox = new THREE.Box3().setFromObject(ramp);
+            if (!window.collisionObjects) window.collisionObjects = [];
+            window.collisionObjects.push({
+                mesh: ramp,
+                box: collisionBox,
+                type: 'ramp'
+            });
+        }
+
+        let player = null;
+        let isPlayMode = false;
+        const keysPressed = {};
+
+        const moveSpeed = 0.2;
+
+        document.addEventListener('keydown', (e) => {
+            keysPressed[e.key.toLowerCase()] = true;
+
+            if(e.key === 'Escape' && isPlayMode) {
+                isPlayMode = false;
+                document.getElementById('toolbar').style.display = 'block';
+                document.querySelector('.settings-panel').style.display = 'block';
+                camera.position.set(0, 30, 50);
+                camera.lookAt(scene.position);
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keysPressed[e.key.toLowerCase()] = false;
+        });
+
+        function updatePlayer() {
+            if(!player || !isPlayMode) return;
+
+            if(keysPressed['w']) {
+                player.position.z -= moveSpeed;
+            }
+            if(keysPressed['s']) {
+                player.position.z += moveSpeed;
+            }
+            if(keysPressed['a']) {
+                player.position.x -= moveSpeed;
+            }
+            if(keysPressed['d']) {
+                player.position.x += moveSpeed;
+            }
+            if(keysPressed[' ']) {
+                player.jump();
+            }
+
+            updateCameraPosition();
+        }
+
+        document.getElementById('play-mode').addEventListener('click', () => {
+            isPlayMode = !isPlayMode;
+            if(isPlayMode) {
+                if(!player) createPlayer();
+                document.getElementById('toolbar').style.display = 'none';
+                document.querySelector('.settings-panel').style.display = 'none';
+                document.getElementById('escape-hint').style.display = 'block';
+                updateCameraPosition(); 
+                setTimeout(() => {
+                    document.getElementById('escape-hint').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('escape-hint').style.display = 'none';
+                        document.getElementById('escape-hint').style.opacity = '1';
+                    }, 500);
+                }, 3000);
+            } else {
+                document.getElementById('toolbar').style.display = 'block';
+                document.querySelector('.settings-panel').style.display = 'block';
+                document.getElementById('escape-hint').style.display = 'none';
+                camera.position.set(0, 30, 50);
+                camera.lookAt(scene.position);
+            }
+        });
+
+        document.querySelectorAll('input[name="camera-mode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentCameraMode = e.target.value;
+                if (isPlayMode) {
+                    updateCameraPosition();
+                }
+            });
+        });
+
+        const minimapCamera = new THREE.OrthographicCamera(-50, 50, 50, -50, 1, 1000);
+        minimapCamera.position.y = 100;
+        minimapCamera.lookAt(scene.position);
+
+        const minimapRenderer = new THREE.WebGLRenderer();
+        minimapRenderer.setSize(200, 200);
+        document.getElementById('minimap').appendChild(minimapRenderer.domElement);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            
+            if (isPlayMode) {
+                if (currentCameraMode === 'karting') {
+                    player.update();
+                } else {
+                    updatePlayer();
+                }
+            }
+            
+            updateCameraPosition();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        const settingsPanel = document.querySelector('.settings-panel');
+        const settingsContent = document.createElement('div');
+        settingsContent.className = 'settings-content';
+
+        while(settingsPanel.children.length > 1) {
+            settingsContent.appendChild(settingsPanel.children[1]);
+        }
+        settingsPanel.appendChild(settingsContent);
+        
+        const settingsHeader = settingsPanel.querySelector('h3');
+        settingsHeader.className = 'settings-header';
+        settingsHeader.innerHTML += '<span>▼</span>';
+
+        settingsHeader.addEventListener('click', () => {
+            settingsPanel.classList.toggle('collapsed');
+            settingsHeader.querySelector('span').textContent = 
+                settingsPanel.classList.contains('collapsed') ? '▲' : '▼';
+        });
+
+        const toolButtons = document.querySelectorAll('.tool-btn');
+        let activeTool = null;
+
+        toolButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if(activeTool) activeTool.classList.remove('active-tool');
+                activeTool = e.target;
+                activeTool.classList.add('active-tool');
+                
+                if (activeTool.id === 'add-light') {
+                    // Function to add light
+                } else if (activeTool.id === 'add-portal') {
+                    // Function to add portal
+                } else if (activeTool.id === 'add-bridge') {
+                    // Function to add bridge
+                } else if (activeTool.id === 'add-ramp') {
+                    addRampAt(/* point */); // Implement ramp placement
+                } else {
+                    document.querySelector('.object-settings').style.display = '';
+                }
+            });
+        });
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        renderer.domElement.addEventListener('click', (e) => {
+            if(!activeTool) return;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children);
+
+            if(intersects.length > 0) {
+                const point = intersects[0].point;
+                switch(activeTool.id) {
+                    case 'add-terrain':
+                        addTerrainAt(point);
+                        break;
+                    case 'add-vegetation':
+                        addVegetationAt(point);
+                        break;
+                    case 'add-rocks':
+                        addRockAt(point);
+                        break;
+                    case 'add-structure':
+                        addStructureAt(point);
+                        break;
+                    case 'add-light':
+                        addLightAt(point);
+                        break;
+                    case 'add-portal':
+                        addPortalAt(point);
+                        break;
+                    case 'add-bridge':
+                        addBridgeAt(point);
+                        break;
+                    case 'add-wall':
+                        addWallAt(point);
+                        break;
+                    case 'add-moving':
+                        addMovingObject(point);
+                        break;
+                    case 'add-ramp':
+                        addRampAt(point);
+                        break;
+                }
+            }
+        });
+
+        function addTerrainAt(point) {
+            const height = document.getElementById('terrain-height').value;
+            const hillGeometry = new THREE.ConeGeometry(5, height, 32);
+            const hillMaterial = new THREE.MeshPhongMaterial({ 
+                color: document.getElementById('terrain-color').value 
+            });
+            const hill = new THREE.Mesh(hillGeometry, hillMaterial);
+            hill.position.copy(point);
+            scene.add(hill);
+        }
+
+        function addVegetationAt(point) {
+            const treeGeometry = new THREE.ConeGeometry(1, 4, 8);
+            const treeMaterial = new THREE.MeshPhongMaterial({ color: document.getElementById('vegetation-color').value });
+            const tree = new THREE.Mesh(treeGeometry, treeMaterial);
+            tree.position.copy(point);
+            tree.position.y += 2;
+            scene.add(tree);
+        }
+
+        function addRockAt(point) {
+            const rockGeometry = new THREE.DodecahedronGeometry(Math.random() * 2 + 1);
+            const rockMaterial = new THREE.MeshPhongMaterial({ 
+                color: document.getElementById('rock-color').value,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+            rock.position.copy(point);
+            rock.position.y += 1;
+            scene.add(rock);
+        }
+
+        function addStructureAt(point) {
+            const structureType = prompt('Choose structure type: house/tower/temple/castle/pyramid');
+            const building = new THREE.Group();
+            
+            switch(structureType) {
+                case 'house':
+                    const houseGeometry = new THREE.BoxGeometry(5, 5, 5);
+                    const houseMaterial = new THREE.MeshPhongMaterial({ color: document.getElementById('structure-color').value });
+                    const house = new THREE.Mesh(houseGeometry, houseMaterial);
+                    building.add(house);
+                    break;
+                case 'tower':
+                    const towerHeight = 15;
+                    const towerGeometry = new THREE.CylinderGeometry(2, 3, towerHeight, 8);
+                    const tower = new THREE.Mesh(towerGeometry, new THREE.MeshPhongMaterial({color: 0x808080}));
+                    building.add(tower);
+                    break;
+                case 'temple':
+                    const baseGeom = new THREE.BoxGeometry(10, 2, 10);
+                    const columns = [];
+                    for(let i = 0; i < 4; i++) {
+                        const column = new THREE.Mesh(
+                            new THREE.CylinderGeometry(0.5, 0.5, 8, 8),
+                            new THREE.MeshPhongMaterial({color: 0xcccccc})
+                        );
+                        column.position.set(
+                            i < 2 ? -4 : 4,
+                            4,
+                            i % 2 === 0 ? -4 : 4
+                        );
+                        columns.push(column);
+                    }
+                    const roof = new THREE.Mesh(
+                        new THREE.ConeGeometry(7, 4, 4),
+                        new THREE.MeshPhongMaterial({color: 0x8b4513})
+                    );
+                    roof.position.y = 8;
+                    building.add(new THREE.Mesh(baseGeom, new THREE.MeshPhongMaterial({color: 0xcccccc})));
+                    columns.forEach(col => building.add(col));
+                    building.add(roof);
+                    break;
+            }
+            
+            building.position.copy(point);
+            building.position.y += 2.5;
+            scene.add(building);
+        }
+
+        function addLightAt(point) {
+            const lightTypes = {
+                point: THREE.PointLight,
+                spot: THREE.SpotLight,
+                directional: THREE.DirectionalLight
+            };
+            
+            const type = prompt('Light type (point/spot/directional):', 'point');
+            const color = prompt('Light color (hex):', '#ffffff');
+            const intensity = parseFloat(prompt('Light intensity (0-2):', '1'));
+            
+            if(lightTypes[type]) {
+                const light = new lightTypes[type](color, intensity);
+                light.position.copy(point);
+                light.castShadow = true;
+                
+                if(type === 'spot') {
+                    light.angle = Math.PI/4;
+                    light.penumbra = 0.1;
+                }
+                
+                scene.add(light);
+                
+                const bulbGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+                const bulbMaterial = new THREE.MeshBasicMaterial({color: color});
+                const bulb = new THREE.Mesh(bulbGeometry, bulbMaterial);
+                bulb.position.copy(point);
+                scene.add(bulb);
+            }
+        }
+
+        function addPortalAt(point) {
+            const portalGeometry = new THREE.CircleGeometry(3, 32);
+            const portalMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+            const portal = new THREE.Mesh(portalGeometry, portalMaterial);
+            portal.position.copy(point);
+            portal.rotation.x = -Math.PI / 2;
+            scene.add(portal);
+        }
+
+        function addBridgeAt(point) {
+            const bridgeGeometry = new THREE.BoxGeometry(8, 0.5, 2);
+            const bridgeMaterial = new THREE.MeshPhongMaterial({ color: 0x654321 });
+            const bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
+            bridge.position.copy(point);
+            bridge.position.y += 1;
+            scene.add(bridge);
+        }
+
+        function addWallAt(point) {
+            const wallGeometry = new THREE.BoxGeometry(10, 8, 1);
+            const wallMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x505050,
+                transparent: true,
+                opacity: 0.8
+            });
+            const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+            wall.position.copy(point);
+            wall.position.y += 4;
+            scene.add(wall);
+        }
+
+        function addMovingObject(point) {
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: 0x00ff00,
+                transparent: true,
+                opacity: 0.8
+            });
+            const movingObj = new THREE.Mesh(geometry, material);
+            movingObj.position.copy(point);
+            movingObj.position.y += 2;
+            
+            movingObj.userData.movement = {
+                speed: 0.05,
+                distance: 10,
+                originalX: point.x,
+                direction: 1
+            };
+            
+            if (!window.movingObjects) window.movingObjects = [];
+            window.movingObjects.push(movingObj);
+            
+            scene.add(movingObj);
+        }
+
+        function updateMovingObjects() {
+            if (!window.movingObjects) return;
+            
+            window.movingObjects.forEach(obj => {
+                const movement = obj.userData.movement;
+                
+                obj.position.x += movement.speed * movement.direction;
+                
+                if (Math.abs(obj.position.x - movement.originalX) > movement.distance) {
+                    movement.direction *= -1;
+                }
+            });
+        }
+
+        document.getElementById('save-world').addEventListener('click', () => {
+            const format = prompt('Save as (json/fbx):', 'json');
+            if(format === 'json') {
+                const worldData = JSON.stringify(scene.toJSON());
+                const blob = new Blob([worldData], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'my-world.json';
+                a.click();
+            } else if(format === 'fbx') {
+                const exporter = new THREE.FBXExporter();
+                const fbxData = exporter.parse(scene);
+                const blob = new Blob([fbxData], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'my-world.fbx';
+                a.click();
+            }
+        });
+
+        document.getElementById('terrain-height').addEventListener('input', (e) => {
+            terrain.scale.y = e.target.value / 10;
+        });
+
+        document.getElementById('water-level').addEventListener('input', (e) => {
+            scene.children.forEach(child => {
+                if(child.material && child.material.opacity < 1) {
+                    child.position.y = e.target.value / 10;
+                }
+            });
+        });
+
+        document.getElementById('terrain-color').addEventListener('input', (e) => {
+            terrain.material.color.setStyle(e.target.value);
+        });
+
+        document.getElementById('ambient-light').addEventListener('input', (e) => {
+            ambientLight.intensity = e.target.value;
+        });
+
+        document.getElementById('fog-density').addEventListener('input', (e) => {
+            scene.fog.density = e.target.value;
+        });
+
+        document.getElementById('object-opacity').addEventListener('input', (e) => {
+            scene.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    child.material.opacity = e.target.value;
+                    child.material.transparent = e.target.value < 1;
+                }
+            });
+        });
+
+        document.getElementById('shadows-enabled').addEventListener('change', (e) => {
+            renderer.shadowMap.enabled = e.target.checked;
+            scene.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = e.target.checked;
+                    child.receiveShadow = e.target.checked;
+                }
+            });
+        });
+
+        document.getElementById('wireframe-mode').addEventListener('change', (e) => {
+            scene.traverse((child) => {
+                if (child.isMesh) {
+                    child.material.wireframe = e.target.checked;
+                }
+            });
+        });
+
+        document.getElementById('smooth-shading').addEventListener('change', (e) => {
+            scene.traverse((child) => {
+                if (child.isMesh) {
+                    if (e.target.checked) {
+                        child.geometry.computeVertexNormals();
+                    } else {
+                        child.geometry.computeVertexNormals();
+                        const positionAttribute = child.geometry.getAttribute('position');
+                        const normalAttribute = child.geometry.getAttribute('normal');
+                        
+                        for (let i = 0; i < positionAttribute.count; i += 3) {
+                            const vA = new THREE.Vector3().fromBufferAttribute(positionAttribute, i);
+                            const vB = new THREE.Vector3().fromBufferAttribute(positionAttribute, i + 1);
+                            const vC = new THREE.Vector3().fromBufferAttribute(positionAttribute, i + 2);
+                            
+                            const cb = new THREE.Vector3().subVectors(vC, vB);
+                            const ab = new THREE.Vector3().subVectors(vA, vB);
+                            const normal = new THREE.Vector3().crossVectors(cb, ab).normalize();
+                            
+                            normalAttribute.setXYZ(i, normal.x, normal.y, normal.z);
+                            normalAttribute.setXYZ(i + 1, normal.x, normal.y, normal.z);
+                            normalAttribute.setXYZ(i + 2, normal.x, normal.y, normal.z);
+                        }
+                        
+                        normalAttribute.needsUpdate = true;
+                    }
+                    child.material.needsUpdate = true;
+                }
+            });
+        });
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+            }, 1000);
+        });
+
+        function createPlayer() {
+            if (currentCameraMode === 'karting') {
+                player = new Kart();
+            } else {
+                player = new Character();
+            }
+            scene.add(player);
+            player.position.y = 3;
+            camera.position.set(0, 5, 10);
+            camera.lookAt(player.position);
+        }
+
+        animate();
+
+        document.getElementById('settings').addEventListener('click', () => {
+            const panel = document.querySelector('.settings-panel');
+            panel.classList.toggle('collapsed');
+        });
+    </script>
+</body>
+</html>
