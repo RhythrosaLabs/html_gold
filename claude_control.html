@@ -1,0 +1,563 @@
+<html><head><base href="https://claude-stable-assistant-hybrid.com/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude-Stable Assistant Hybrid - Dark Mode with Settings</title>
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #202123;
+    height: 100%;
+    color: #ececf1;
+  }
+  .container {
+    display: flex;
+    height: 100vh;
+  }
+  .sidebar {
+    width: 260px;
+    background-color: #202123;
+    border-right: 1px solid #4d4d4f;
+    display: flex;
+    flex-direction: column;
+  }
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .top-bar {
+    background-color: #343541;
+    border-bottom: 1px solid #4d4d4f;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #343541;
+  }
+  .input-container {
+    background-color: #343541;
+    border-top: 1px solid #4d4d4f;
+    padding: 20px;
+  }
+  .input-box {
+    width: 100%;
+    min-height: 60px;
+    border: 1px solid #4d4d4f;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 16px;
+    resize: none;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.1);
+    background-color: #40414f;
+    color: #ececf1;
+  }
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #4d4d4f;
+  }
+  .new-chat-btn, .settings-btn {
+    background-color: #10a37f;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    width: 100%;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .chat-history {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+  }
+  .chat-item {
+    padding: 10px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: #ececf1;
+  }
+  .chat-item:hover {
+    background-color: #2a2b32;
+  }
+  .user-settings {
+    padding: 20px;
+    border-top: 1px solid #4d4d4f;
+  }
+  .message {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+  }
+  .message-content {
+    background-color: #444654;
+    border-radius: 6px;
+    padding: 12px 16px;
+    max-width: 85%;
+    line-height: 1.5;
+  }
+  .user-message .message-content {
+    background-color: #10a37f;
+    color: white;
+    margin-left: auto;
+  }
+  .assistant-message .message-content {
+    background-color: #444654;
+  }
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    margin-right: 16px;
+  }
+  .send-button {
+    position: absolute;
+    right: 30px;
+    bottom: 30px;
+    background-color: #10a37f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .artifacts-panel {
+    width: 300px;
+    background-color: #202123;
+    border-left: 1px solid #4d4d4f;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .artifact {
+    background-color: #2a2b32;
+    border: 1px solid #4d4d4f;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .artifact img {
+    max-width: 100%;
+    border-radius: 4px;
+  }
+  .settings-page {
+    display: none;
+    padding: 20px;
+    background-color: #343541;
+    height: 100%;
+    overflow-y: auto;
+  }
+  .settings-page h2 {
+    margin-bottom: 20px;
+  }
+  .settings-section {
+    margin-bottom: 30px;
+  }
+  .settings-section h3 {
+    margin-bottom: 15px;
+  }
+  .setting-item {
+    margin-bottom: 15px;
+  }
+  .setting-item label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  .setting-item input[type="text"],
+  .setting-item input[type="number"],
+  .setting-item select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #4d4d4f;
+    background-color: #40414f;
+    color: #ececf1;
+  }
+  .setting-item input[type="checkbox"] {
+    margin-right: 10px;
+  }
+  .save-settings-btn {
+    background-color: #10a37f;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .media-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  .media-button {
+    background-color: #40414f;
+    color: #ececf1;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .media-button.active {
+    background-color: #10a37f;
+  }
+  .media-panel {
+    display: none;
+    flex: 1;
+    background-color: #343541;
+    padding: 20px;
+  }
+  .media-panel.active {
+    display: block;
+  }
+  #videoEditor, #audioEditor, #modelViewer {
+    width: 100%;
+    height: 300px;
+    background-color: #2a2b32;
+    border: 1px solid #4d4d4f;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button class="new-chat-btn">+ New chat</button>
+      <button class="settings-btn" id="settingsBtn">Settings</button>
+    </div>
+    <div class="chat-history">
+      <div class="chat-item">Previous chat 1</div>
+      <div class="chat-item">Previous chat 2</div>
+      <div class="chat-item">Previous chat 3</div>
+    </div>
+    <div class="user-settings">
+      <div>User settings</div>
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="top-bar">
+      <div>Claude-Stable Assistant Hybrid</div>
+      <div class="media-buttons">
+        <button class="media-button active" data-target="chatContainer">Chat</button>
+        <button class="media-button" data-target="videoPanel">Video</button>
+        <button class="media-button" data-target="audioPanel">Audio</button>
+        <button class="media-button" data-target="3dPanel">3D</button>
+      </div>
+    </div>
+    <div class="chat-container" id="chatContainer">
+      <div class="message assistant-message">
+        <img src="https://claude-stable-assistant-hybrid.com/assistant-avatar.png" alt="Assistant Avatar" class="avatar">
+        <div class="message-content">
+          Hello! I'm a hybrid AI assistant combining features of Claude and Stable Assistant. How can I help you today?
+        </div>
+      </div>
+    </div>
+    <div class="media-panel" id="videoPanel">
+      <h3>Video Editor</h3>
+      <div id="videoEditor"></div>
+    </div>
+    <div class="media-panel" id="audioPanel">
+      <h3>Audio Editor</h3>
+      <div id="audioEditor"></div>
+    </div>
+    <div class="media-panel" id="3dPanel">
+      <h3>3D Model Viewer</h3>
+      <div id="modelViewer"></div>
+    </div>
+    <div class="input-container">
+      <textarea class="input-box" placeholder="Send a message..." id="userInput"></textarea>
+      <button class="send-button" id="sendButton">Send</button>
+    </div>
+    <div class="settings-page" id="settingsPage">
+      <h2>User Settings</h2>
+      
+      <div class="settings-section">
+        <h3>General Settings</h3>
+        <div class="setting-item">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username">
+        </div>
+        <div class="setting-item">
+          <label for="email">Email:</label>
+          <input type="text" id="email" name="email">
+        </div>
+        <div class="setting-item">
+          <label for="language">Preferred Language:</label>
+          <select id="language" name="language">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="settings-section">
+        <h3>AI Assistant Settings</h3>
+        <div class="setting-item">
+          <label for="aiModel">Preferred AI Model:</label>
+          <select id="aiModel" name="aiModel">
+            <option value="hybrid">Claude-Stable Hybrid</option>
+            <option value="claude">Claude</option>
+            <option value="stable">Stable Assistant</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label for="temperature">AI Temperature (0.1 - 1.0):</label>
+          <input type="number" id="temperature" name="temperature" min="0.1" max="1.0" step="0.1" value="0.7">
+        </div>
+        <div class="setting-item">
+          <input type="checkbox" id="useMemory" name="useMemory">
+          <label for="useMemory">Enable conversation memory</label>
+        </div>
+      </div>
+      
+      <div class="settings-section">
+        <h3>Image Generation Settings</h3>
+        <div class="setting-item">
+          <label for="imageSize">Default Image Size:</label>
+          <select id="imageSize" name="imageSize">
+            <option value="512x512">512x512</option>
+            <option value="1024x1024">1024x1024</option>
+            <option value="1536x1536">1536x1536</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <input type="checkbox" id="nsfwFilter" name="nsfwFilter" checked>
+          <label for="nsfwFilter">Enable NSFW content filter</label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Video Settings</h3>
+        <div class="setting-item">
+          <label for="videoQuality">Default Video Quality:</label>
+          <select id="videoQuality" name="videoQuality">
+            <option value="720p">720p</option>
+            <option value="1080p">1080p</option>
+            <option value="4k">4K</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Audio Settings</h3>
+        <div class="setting-item">
+          <label for="audioQuality">Default Audio Quality:</label>
+          <select id="audioQuality" name="audioQuality">
+            <option value="128kbps">128 kbps</option>
+            <option value="256kbps">256 kbps</option>
+            <option value="320kbps">320 kbps</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>3D Settings</h3>
+        <div class="setting-item">
+          <label for="3dQuality">Default 3D Render Quality:</label>
+          <select id="3dQuality" name="3dQuality">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+      
+      <button class="save-settings-btn" id="saveSettingsBtn">Save Settings</button>
+    </div>
+  </div>
+  <div class="artifacts-panel" id="artifactsPanel">
+    <h3>Artifacts</h3>
+    <!-- Artifacts will be dynamically added here -->
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+  const userInput = document.getElementById('userInput');
+  const sendButton = document.getElementById('sendButton');
+  const chatContainer = document.getElementById('chatContainer');
+  const artifactsPanel = document.getElementById('artifactsPanel');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsPage = document.getElementById('settingsPage');
+  const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+  const mediaButtons = document.querySelectorAll('.media-button');
+  const mediaPanels = document.querySelectorAll('.media-panel, #chatContainer');
+
+  function sendMessage() {
+    const message = userInput.value.trim();
+    if (message) {
+      addMessage('user', message);
+      userInput.value = '';
+      // Simulate assistant response
+      setTimeout(() => {
+        addMessage('assistant', "I'm a hybrid AI assistant in dark mode. I can help with various tasks, including generating images or code. What would you like to do?");
+        // Simulate adding an artifact
+        addArtifact('image', 'https://claude-stable-assistant-hybrid.com/sample-image-dark.jpg', 'A sample generated image (dark theme)');
+      }, 1000);
+    }
+  }
+
+  sendButton.addEventListener('click', sendMessage);
+  userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  function addMessage(sender, content) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+    
+    const avatar = document.createElement('img');
+    avatar.className = 'avatar';
+    avatar.src = `https://claude-stable-assistant-hybrid.com/${sender}-avatar-dark.png`;
+    avatar.alt = `${sender.charAt(0).toUpperCase() + sender.slice(1)} Avatar`;
+    
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    messageContent.textContent = content;
+    
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(messageContent);
+    
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function addArtifact(type, src, description) {
+    const artifactDiv = document.createElement('div');
+    artifactDiv.className = 'artifact';
+    
+    let mediaElement;
+    switch (type) {
+      case 'image':
+        mediaElement = document.createElement('img');
+        mediaElement.src = src;
+        mediaElement.alt = description;
+        break;
+      case 'video':
+        mediaElement = document.createElement('video');
+        mediaElement.src = src;
+        mediaElement.controls = true;
+        break;
+      case 'audio':
+        mediaElement = document.createElement('audio');
+        mediaElement.src = src;
+        mediaElement.controls = true;
+        break;
+      case '3d':
+        mediaElement = document.createElement('div');
+        mediaElement.textContent = '3D Model (Click to view)';
+        mediaElement.style.cursor = 'pointer';
+        mediaElement.onclick = () => {
+          alert('3D viewer would open here');
+        };
+        break;
+    }
+
+    artifactDiv.appendChild(mediaElement);
+    
+    const descriptionP = document.createElement('p');
+    descriptionP.textContent = description;
+    artifactDiv.appendChild(descriptionP);
+    
+    artifactsPanel.appendChild(artifactDiv);
+  }
+
+  settingsBtn.addEventListener('click', () => {
+    chatContainer.style.display = 'none';
+    settingsPage.style.display = 'block';
+  });
+
+  saveSettingsBtn.addEventListener('click', () => {
+    const settings = {
+      username: document.getElementById('username').value,
+      email: document.getElementById('email').value,
+      language: document.getElementById('language').value,
+      aiModel: document.getElementById('aiModel').value,
+      temperature: document.getElementById('temperature').value,
+      useMemory: document.getElementById('useMemory').checked,
+      imageSize: document.getElementById('imageSize').value,
+      nsfwFilter: document.getElementById('nsfwFilter').checked,
+      videoQuality: document.getElementById('videoQuality').value,
+      audioQuality: document.getElementById('audioQuality').value,
+      quality3D: document.getElementById('3dQuality').value,
+    };
+    console.log('Settings saved:', settings);
+
+    chatContainer.style.display = 'block';
+    settingsPage.style.display = 'none';
+
+    addMessage('assistant', 'Your settings have been saved successfully.');
+  });
+
+  mediaButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const targetId = button.getAttribute('data-target');
+      mediaButtons.forEach(btn => btn.classList.remove('active'));
+      mediaPanels.forEach(panel => panel.classList.remove('active'));
+      button.classList.add('active');
+      document.getElementById(targetId).classList.add('active');
+    });
+  });
+
+  const videoEditor = document.getElementById('videoEditor');
+  const videoElement = document.createElement('video');
+  videoElement.controls = true;
+  videoElement.src = 'https://claude-stable-assistant-hybrid.com/sample-video.mp4';
+  videoEditor.appendChild(videoElement);
+
+  const audioEditor = document.getElementById('audioEditor');
+  const audioElement = document.createElement('audio');
+  audioElement.controls = true;
+  audioElement.src = 'https://claude-stable-assistant-hybrid.com/sample-audio.mp3';
+  audioEditor.appendChild(audioElement);
+
+  function init3DViewer() {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    script.onload = () => {
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(300, 300);
+      document.getElementById('modelViewer').appendChild(renderer.domElement);
+
+      const geometry = new THREE.BoxGeometry();
+      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+      const cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+
+      camera.position.z = 5;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.01;
+        renderer.render(scene, camera);
+      }
+      animate();
+    };
+    document.head.appendChild(script);
+  }
+
+  init3DViewer();
+});
+</script>
+</body>
+</html>
