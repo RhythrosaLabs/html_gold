@@ -1,0 +1,223 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Studio - Web Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AI Studio</h1>
+
+    <!-- API Key Inputs -->
+    <div class="section">
+        <h2>API Key Configuration</h2>
+        <label for="openaiKey">OpenAI API Key</label>
+        <input type="text" id="openaiKey" placeholder="Enter OpenAI API Key">
+        <label for="replicateKey">Replicate API Key</label>
+        <input type="text" id="replicateKey" placeholder="Enter Replicate API Key">
+        <label for="stabilityKey">Stability AI API Key</label>
+        <input type="text" id="stabilityKey" placeholder="Enter Stability AI API Key">
+        <button onclick="saveApiKeys()">Save API Keys</button>
+    </div>
+
+    <!-- Image Generation -->
+    <div class="section">
+        <h2>Generate Image</h2>
+        <label for="imagePrompt">Enter Image Generation Prompt</label>
+        <textarea id="imagePrompt" rows="3" placeholder="Describe the image you want to generate"></textarea>
+        <button onclick="generateImage()">Generate Image</button>
+        <div id="imageResult"></div>
+    </div>
+
+    <!-- 3D Model Generation -->
+    <div class="section">
+        <h2>Generate 3D Model</h2>
+        <label for="uploadImage">Upload Image for 3D Model</label>
+        <input type="file" id="uploadImage" accept="image/*">
+        <button onclick="generate3DModel()">Generate 3D Model</button>
+        <div id="modelResult"></div>
+    </div>
+
+    <!-- Video Generation -->
+    <div class="section">
+        <h2>Generate Video</h2>
+        <label for="uploadImageVideo">Upload Image to Convert to Video</label>
+        <input type="file" id="uploadImageVideo" accept="image/*">
+        <button onclick="generateVideo()">Generate Video</button>
+        <div id="videoResult"></div>
+    </div>
+
+    <!-- Music Generation -->
+    <div class="section">
+        <h2>Generate Music</h2>
+        <label for="musicPrompt">Enter Music Generation Prompt</label>
+        <textarea id="musicPrompt" rows="3" placeholder="Describe the music you want to generate"></textarea>
+        <button onclick="generateMusic()">Generate Music</button>
+        <div id="musicResult"></div>
+    </div>
+
+</div>
+
+<script>
+    // Save API Keys to Local Storage (Simple Persistence)
+    function saveApiKeys() {
+        const openaiKey = document.getElementById('openaiKey').value;
+        const replicateKey = document.getElementById('replicateKey').value;
+        const stabilityKey = document.getElementById('stabilityKey').value;
+        localStorage.setItem('openaiKey', openaiKey);
+        localStorage.setItem('replicateKey', replicateKey);
+        localStorage.setItem('stabilityKey', stabilityKey);
+        alert('API Keys saved successfully!');
+    }
+
+    // Fetch API Keys from Local Storage
+    function getApiKeys() {
+        return {
+            openai: localStorage.getItem('openaiKey'),
+            replicate: localStorage.getItem('replicateKey'),
+            stability: localStorage.getItem('stabilityKey')
+        };
+    }
+
+    // Image Generation
+    async function generateImage() {
+        const apiKeys = getApiKeys();
+        const prompt = document.getElementById('imagePrompt').value;
+        if (!apiKeys.replicate) {
+            alert("Please set your Replicate API key.");
+            return;
+        }
+
+        // Use Replicate's Stable Image Ultra model for image generation
+        const url = `https://api.replicate.com/v1/predictions`;
+        const body = {
+            version: "stabilityai/stable-image-ultra",
+            input: { prompt: prompt }
+        };
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Authorization": `Token ${apiKeys.replicate}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        });
+
+        const result = await response.json();
+        document.getElementById('imageResult').innerHTML = `<img src="${result.output}" alt="Generated Image" style="width:100%"/>`;
+    }
+
+    // 3D Model Generation
+    async function generate3DModel() {
+        const apiKeys = getApiKeys();
+        const imageFile = document.getElementById('uploadImage').files[0];
+        if (!apiKeys.stability || !imageFile) {
+            alert("Please upload an image and set your Stability API key.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', imageFile);
+
+        const response = await fetch(`https://api.stability.ai/v1/generation/stable-fast-3d`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${apiKeys.stability}` },
+            body: formData
+        });
+
+        const result = await response.json();
+        document.getElementById('modelResult').innerHTML = `<a href="${result.url}" target="_blank">Download 3D Model</a>`;
+    }
+
+    // Video Generation
+    async function generateVideo() {
+        const apiKeys = getApiKeys();
+        const imageFile = document.getElementById('uploadImageVideo').files[0];
+        if (!apiKeys.replicate || !imageFile) {
+            alert("Please upload an image and set your Replicate API key.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', imageFile);
+
+        const response = await fetch(`https://api.replicate.com/v1/predictions`, {
+            method: 'POST',
+            headers: { 'Authorization': `Token ${apiKeys.replicate}` },
+            body: formData
+        });
+
+        const result = await response.json();
+        document.getElementById('videoResult').innerHTML = `<video controls style="width:100%"><source src="${result.output}" type="video/mp4"></video>`;
+    }
+
+    // Music Generation
+    async function generateMusic() {
+        const apiKeys = getApiKeys();
+        const prompt = document.getElementById('musicPrompt').value;
+        if (!apiKeys.replicate) {
+            alert("Please set your Replicate API key.");
+            return;
+        }
+
+        const response = await fetch(`https://api.replicate.com/v1/predictions`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Token ${apiKeys.replicate}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                version: "facebook/musicgen",
+                input: { text: prompt }
+            })
+        });
+
+        const result = await response.json();
+        document.getElementById('musicResult').innerHTML = `<audio controls><source src="${result.output}" type="audio/mpeg"></audio>`;
+    }
+</script>
+
+</body>
+</html>
