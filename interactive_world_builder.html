@@ -162,24 +162,45 @@
             transform: scale(0);
         }
 
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 5px;
-            border-bottom: 1px solid #444;
-            font-weight: 500;
-            letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-        }
-
         .settings-content {
             transition: max-height 0.3s ease-out;
-            overflow: hidden;
+            max-height: 70vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.3) transparent;
             padding: 0 10px;
+        }
+
+        .settings-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .settings-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .settings-content::-webkit-scrollbar-thumb {
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
+
+        .settings-section {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 0;
+            margin: 5px 0;
+        }
+
+        .settings-section h4 {
+            color: #fff;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin: 10px 0;
         }
 
         .slider-container {
@@ -338,55 +359,36 @@
             <span>▼</span>
         </div>
         <div class="settings-content">
-            <div class="slider-container">
-                <label>Terrain Height</label>
-                <input type="range" class="slider" id="terrain-height" min="1" max="20" value="10">
-            </div>
-            <div class="slider-container">
-                <label>Water Level</label>
-                <input type="range" class="slider" id="water-level" min="0" max="10" value="0">
-            </div>
-            <div class="slider-container">
-                <label>Vegetation Density</label>
-                <input type="range" class="slider" id="vegetation-density" min="1" max="100" value="50">
-            </div>
-            <div class="color-picker">
-                <label>Terrain Color</label>
-                <input type="color" id="terrain-color" value="#3b7d4f">
-            </div>
-            <div class="color-settings">
-                <h4>Color Settings</h4>
-                <div class="color-picker">
-                    <label>Structure Color</label>
-                    <input type="color" id="structure-color" value="#808080">
-                </div>
-                <div class="color-picker">
-                    <label>Rock Color</label>
-                    <input type="color" id="rock-color" value="#808080">
-                </div>
-                <div class="color-picker">
-                    <label>Vegetation Color</label>
-                    <input type="color" id="vegetation-color" value="#2d5a27">
-                </div>
-                <div class="color-picker">
-                    <label>Path Color</label>
-                    <input type="color" id="path-color" value="#8b4513">
+            <div class="settings-section">
+                <h4>Game Mode</h4>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="camera-mode" value="first-person" checked>
+                        First Person
+                    </label>
+                    <label>
+                        <input type="radio" name="camera-mode" value="third-person">
+                        Third Person
+                    </label>
+                    <label>
+                        <input type="radio" name="camera-mode" value="overhead">
+                        Overhead
+                    </label>
+                    <label>
+                        <input type="radio" name="camera-mode" value="karting">
+                        Karting Mode
+                    </label>
                 </div>
             </div>
-            <div class="slider-container">
-                <label>Ambient Light Intensity</label>
-                <input type="range" class="slider" id="ambient-light" min="0" max="2" value="1" step="0.1">
-            </div>
-            <div class="slider-container">
-                <label>Fog Density</label>
-                <input type="range" class="slider" id="fog-density" min="0" max="0.1" value="0.015" step="0.001">
-            </div>
-            <div class="slider-container">
-                <label>Object Opacity</label>
-                <input type="range" class="slider" id="object-opacity" min="0.1" max="1" value="1" step="0.1">
-            </div>
-            <div class="game-settings">
-                <h4>Game Settings</h4>
+
+            <div class="settings-section">
+                <h4>Physics & Gameplay</h4>
+                <div class="checkbox-container">
+                    <label>
+                        <input type="checkbox" id="enable-collisions" checked>
+                        Enable Collisions
+                    </label>
+                </div>
                 <div class="slider-container">
                     <label>Player Speed</label>
                     <input type="range" class="slider" id="player-speed" min="0.1" max="1" value="0.2" step="0.1">
@@ -400,11 +402,20 @@
                     <input type="range" class="slider" id="gravity-strength" min="0.01" max="0.05" value="0.02" step="0.01">
                 </div>
             </div>
-            <div class="world-settings">
+
+            <div class="settings-section">
                 <h4>World Settings</h4>
                 <div class="slider-container">
                     <label>World Size</label>
                     <input type="range" class="slider" id="world-size" min="50" max="200" value="100" step="10">
+                </div>
+                <div class="slider-container">
+                    <label>Day/Night Cycle Speed</label>
+                    <input type="range" class="slider" id="day-night-speed" min="0" max="0.01" value="0.001" step="0.001">
+                </div>
+                <div class="slider-container">
+                    <label>Particle Density</label>
+                    <input type="range" class="slider" id="particle-density" min="0" max="100" value="50">
                 </div>
                 <div class="checkbox-container">
                     <label>
@@ -412,15 +423,42 @@
                         Enable Day/Night Cycle
                     </label>
                 </div>
-                <div class="checkbox-container">
-                    <label>
-                        <input type="checkbox" id="enable-weather">
-                        Enable Weather Effects
-                    </label>
+            </div>
+
+            <div class="settings-section">
+                <h4>Terrain Settings</h4>
+                <div class="slider-container">
+                    <label>Terrain Height</label>
+                    <input type="range" class="slider" id="terrain-height" min="1" max="20" value="10">
+                </div>
+                <div class="slider-container">
+                    <label>Water Level</label>
+                    <input type="range" class="slider" id="water-level" min="0" max="20" value="5">
+                </div>
+                <div class="color-settings">
+                    <label>Terrain Color</label>
+                    <input type="color" id="terrain-color" value="#808080">
                 </div>
             </div>
-            <div class="world-settings">
-                <h4>Rendering Settings</h4>
+
+            <div class="settings-section">
+                <h4>Object Colors</h4>
+                <div class="color-settings">
+                    <label>Rock Color</label>
+                    <input type="color" id="rock-color" value="#808080">
+                </div>
+                <div class="color-settings">
+                    <label>Vegetation Color</label>
+                    <input type="color" id="vegetation-color" value="#228B22">
+                </div>
+                <div class="color-settings">
+                    <label>Structure Color</label>
+                    <input type="color" id="structure-color" value="#8B4513">
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>Visual Settings</h4>
                 <div class="checkbox-container">
                     <label>
                         <input type="checkbox" id="shadows-enabled" checked>
@@ -433,24 +471,14 @@
                         Wireframe Mode
                     </label>
                 </div>
-                <div class="checkbox-container">
-                    <label>
-                        <input type="checkbox" id="smooth-shading" checked>
-                        Smooth Shading
-                    </label>
+                <div class="slider-container">
+                    <label>Ambient Light</label>
+                    <input type="range" class="slider" id="ambient-light" min="0" max="2" value="1" step="0.1">
                 </div>
-            </div>
-            <div class="slider-container">
-                <label>Player Speed</label>
-                <input type="range" class="slider" id="player-speed" min="0.1" max="1" value="0.2" step="0.1">
-            </div>
-            <div class="slider-container">
-                <label>Jump Height</label>
-                <input type="range" class="slider" id="jump-height" min="0.2" max="0.5" value="0.35" step="0.05">
-            </div>
-            <div class="slider-container">
-                <label>Gravity Strength</label>
-                <input type="range" class="slider" id="gravity-strength" min="0.01" max="0.05" value="0.02" step="0.01">
+                <div class="slider-container">
+                    <label>Fog Density</label>
+                    <input type="range" class="slider" id="fog-density" min="0" max="0.1" value="0.015" step="0.001">
+                </div>
             </div>
         </div>
     </div>
@@ -640,7 +668,10 @@
         floor.receiveShadow = true;
         scene.add(floor);
 
+        window.activeTerrain = null;
+
         let currentCameraMode = 'first-person';
+        let dayNightCycle = null;
 
         function updateCameraPosition() {
             if (!player || !isPlayMode) return;
@@ -780,64 +811,6 @@
             }
         });
 
-        document.querySelectorAll('input[name="camera-mode"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                currentCameraMode = e.target.value;
-                if (isPlayMode) {
-                    updateCameraPosition();
-                }
-            });
-        });
-
-        const minimapCamera = new THREE.OrthographicCamera(-50, 50, 50, -50, 1, 1000);
-        minimapCamera.position.y = 100;
-        minimapCamera.lookAt(scene.position);
-
-        const minimapRenderer = new THREE.WebGLRenderer();
-        minimapRenderer.setSize(200, 200);
-        document.getElementById('minimap').appendChild(minimapRenderer.domElement);
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            
-            if (isPlayMode) {
-                if (currentCameraMode === 'karting') {
-                    player.update();
-                } else {
-                    updatePlayer();
-                }
-            }
-            
-            updateCameraPosition();
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        const settingsPanel = document.querySelector('.settings-panel');
-        const settingsContent = document.createElement('div');
-        settingsContent.className = 'settings-content';
-
-        while(settingsPanel.children.length > 1) {
-            settingsContent.appendChild(settingsPanel.children[1]);
-        }
-        settingsPanel.appendChild(settingsContent);
-        
-        const settingsHeader = settingsPanel.querySelector('h3');
-        settingsHeader.className = 'settings-header';
-        settingsHeader.innerHTML += '<span>▼</span>';
-
-        settingsHeader.addEventListener('click', () => {
-            settingsPanel.classList.toggle('collapsed');
-            settingsHeader.querySelector('span').textContent = 
-                settingsPanel.classList.contains('collapsed') ? '▲' : '▼';
-        });
-
         const toolButtons = document.querySelectorAll('.tool-btn');
         let activeTool = null;
 
@@ -855,8 +828,6 @@
                     // Function to add bridge
                 } else if (activeTool.id === 'add-ramp') {
                     addRampAt(/* point */); // Implement ramp placement
-                } else {
-                    document.querySelector('.object-settings').style.display = '';
                 }
             });
         });
@@ -913,14 +884,15 @@
         });
 
         function addTerrainAt(point) {
-            const height = document.getElementById('terrain-height').value;
+            const height = document.getElementById('terrain-height')?.value || 10;
             const hillGeometry = new THREE.ConeGeometry(5, height, 32);
             const hillMaterial = new THREE.MeshPhongMaterial({ 
-                color: document.getElementById('terrain-color').value 
+                color: document.getElementById('terrain-color')?.value || 0x808080 
             });
             const hill = new THREE.Mesh(hillGeometry, hillMaterial);
             hill.position.copy(point);
             scene.add(hill);
+            window.activeTerrain = hill;
         }
 
         function addVegetationAt(point) {
@@ -935,13 +907,15 @@
         function addRockAt(point) {
             const rockGeometry = new THREE.DodecahedronGeometry(Math.random() * 2 + 1);
             const rockMaterial = new THREE.MeshPhongMaterial({ 
-                color: document.getElementById('rock-color').value,
+                color: document.getElementById('rock-color')?.value || 0x808080,
                 roughness: 0.8,
                 metalness: 0.2
             });
             const rock = new THREE.Mesh(rockGeometry, rockMaterial);
             rock.position.copy(point);
             rock.position.y += 1;
+            rock.castShadow = true;
+            rock.receiveShadow = true;
             scene.add(rock);
         }
 
@@ -1092,17 +1066,16 @@
             });
         }
 
-        function randomizeWorld() {
-            // Clear existing objects except floor
+        function clearExistingObjects() {
             scene.children.forEach(child => {
                 if (child !== floor && child !== ambientLight && child !== dirLight) {
                     scene.remove(child);
                 }
             });
+        }
 
-            // Generate random terrain features
-            const numTerrainFeatures = Math.floor(Math.random() * 10) + 5;
-            for (let i = 0; i < numTerrainFeatures; i++) {
+        function generateRandomTerrain(config) {
+            for (let i = 0; i < config.count; i++) {
                 const point = new THREE.Vector3(
                     (Math.random() - 0.5) * 80,
                     0,
@@ -1110,22 +1083,22 @@
                 );
                 addTerrainAt(point);
             }
+        }
 
-            // Add random ramps
-            const numRamps = Math.floor(Math.random() * 5) + 3;
-            for (let i = 0; i < numRamps; i++) {
+        function generateRandomVegetation(config) {
+            for (let i = 0; i < config.count; i++) {
                 const point = new THREE.Vector3(
                     (Math.random() - 0.5) * 80,
                     0,
                     (Math.random() - 0.5) * 80
                 );
-                addRampAt(point);
+                addVegetationAt(point);
             }
+        }
 
-            // Add random structures
+        function generateRandomStructures(config) {
             const structureTypes = ['house', 'tower', 'temple'];
-            const numStructures = Math.floor(Math.random() * 5) + 2;
-            for (let i = 0; i < numStructures; i++) {
+            for (let i = 0; i < config.count; i++) {
                 const point = new THREE.Vector3(
                     (Math.random() - 0.5) * 80,
                     0,
@@ -1134,21 +1107,21 @@
                 const type = structureTypes[Math.floor(Math.random() * structureTypes.length)];
                 addStructureAt(point, type);
             }
+        }
 
-            // Add random vegetation
-            const numVegetation = Math.floor(Math.random() * 20) + 10;
-            for (let i = 0; i < numVegetation; i++) {
+        function generateRandomRamps(config) {
+            for (let i = 0; i < config.count; i++) {
                 const point = new THREE.Vector3(
                     (Math.random() - 0.5) * 80,
                     0,
                     (Math.random() - 0.5) * 80
                 );
-                addVegetationAt(point);
+                addRampAt(point);
             }
+        }
 
-            // Add random moving platforms
-            const numPlatforms = Math.floor(Math.random() * 3) + 2;
-            for (let i = 0; i < numPlatforms; i++) {
+        function generateRandomPlatforms(config) {
+            for (let i = 0; i < config.count; i++) {
                 const point = new THREE.Vector3(
                     (Math.random() - 0.5) * 80,
                     0,
@@ -1156,6 +1129,44 @@
                 );
                 addMovingObject(point);
             }
+        }
+
+        function randomizeWorld() {
+            clearExistingObjects();
+
+            const config = {
+                terrain: {
+                    count: Math.floor(Math.random() * 10) + 5,
+                    heightRange: [5, 20],
+                    colors: [0x808080, 0x696969, 0x778899, 0x708090],
+                },
+                vegetation: {
+                    count: Math.floor(Math.random() * 20) + 10,
+                    colors: [0x228B22, 0x006400, 0x556B2F, 0x8FBC8F],
+                    sizes: [0.5, 1, 1.5, 2]
+                },
+                structures: {
+                    count: Math.floor(Math.random() * 5) + 2,
+                    types: ['house', 'tower', 'temple'],
+                    colors: [0xA0522D, 0x8B4513, 0xD2691E, 0xCD853F]
+                },
+                ramps: {
+                    count: Math.floor(Math.random() * 5) + 3,
+                    angles: [15, 30, 45],
+                    lengths: [5, 8, 10]
+                },
+                platforms: {
+                    count: Math.floor(Math.random() * 3) + 2,
+                    speeds: [0.02, 0.05, 0.08],
+                    distances: [5, 10, 15]
+                }
+            };
+
+            generateRandomTerrain(config.terrain);
+            generateRandomVegetation(config.vegetation);
+            generateRandomStructures(config.structures);
+            generateRandomRamps(config.ramps);
+            generateRandomPlatforms(config.platforms);
         }
 
         document.getElementById('randomize-world').addEventListener('click', randomizeWorld);
@@ -1182,69 +1193,79 @@
             }
         });
 
-        document.getElementById('terrain-height').addEventListener('input', (e) => {
-            terrain.scale.y = e.target.value / 10;
-        });
-
-        document.getElementById('water-level').addEventListener('input', (e) => {
-            scene.children.forEach(child => {
-                if(child.material && child.material.opacity < 1) {
-                    child.position.y = e.target.value / 10;
-                }
-            });
-        });
-
-        document.getElementById('terrain-color').addEventListener('input', (e) => {
-            terrain.material.color.setStyle(e.target.value);
-        });
-
-        document.getElementById('ambient-light').addEventListener('input', (e) => {
-            ambientLight.intensity = e.target.value;
-        });
-
-        document.getElementById('fog-density').addEventListener('input', (e) => {
-            scene.fog.density = e.target.value;
-        });
-
-        document.getElementById('object-opacity').addEventListener('input', (e) => {
-            scene.traverse((child) => {
-                if (child.isMesh && child.material) {
-                    child.material.opacity = e.target.value;
-                    child.material.transparent = e.target.value < 1;
-                }
-            });
-        });
-
-        document.getElementById('shadows-enabled').addEventListener('change', (e) => {
-            renderer.shadowMap.enabled = e.target.checked;
-            scene.traverse((child) => {
-                if (child.isMesh) {
-                    child.castShadow = e.target.checked;
-                    child.receiveShadow = e.target.checked;
-                }
-            });
-        });
-
-        document.getElementById('wireframe-mode').addEventListener('change', (e) => {
-            scene.traverse((child) => {
-                if (child.isMesh) {
-                    child.material.wireframe = e.target.checked;
-                }
-            });
-        });
-
-        document.getElementById('smooth-shading').addEventListener('change', (e) => {
-            scene.traverse((child) => {
-                if (child.isMesh) {
+        function initializeEventListeners() {
+            const elements = {
+                'terrain-height': (e) => { if (window.activeTerrain) { window.activeTerrain.scale.y = e.target.value / 10; } },
+                'shadows-enabled': (e) => { 
+                    renderer.shadowMap.enabled = e.target.checked;
+                    scene.traverse(obj => {
+                        if(obj.isMesh) {
+                            obj.castShadow = e.target.checked;
+                            obj.receiveShadow = e.target.checked;
+                        }
+                    });
+                },
+                'enable-day-night': (e) => { 
                     if (e.target.checked) {
-                        child.geometry.computeVertexNormals();
+                        startDayNightCycle(parseFloat(document.getElementById('day-night-speed').value));
                     } else {
-                        child.geometry.computeFlatVertexNormals();
+                        stopDayNightCycle();
                     }
-                    child.material.needsUpdate = true;
+                },
+                'particle-density': updateParticleDensity,
+                'fog-density': (e) => { scene.fog.density = parseFloat(e.target.value); },
+                'ambient-light': (e) => { ambientLight.intensity = parseFloat(e.target.value); },
+                'wireframe-mode': (e) => { 
+                    scene.traverse(obj => {
+                        if(obj.isMesh) obj.material.wireframe = e.target.checked;
+                    });
+                },
+                'player-speed': (e) => { moveSpeed = parseFloat(e.target.value); },
+                'jump-height': (e) => { if (player) player.jumpHeight = parseFloat(e.target.value); },
+                'gravity-strength': (e) => { window.gravityStrength = parseFloat(e.target.value); },
+                'world-size': (e) => { scene.scale.set(e.target.value / 100, e.target.value / 100, e.target.value / 100); },
+                'water-level': updateWaterLevel,
+                'terrain-color': (e) => { if (window.activeTerrain) { window.activeTerrain.material.color.setStyle(e.target.value); } },
+                'rock-color': (e) => {
+                    scene.traverse(obj => {
+                        if(obj.isMesh && obj.material && obj.geometry instanceof THREE.DodecahedronGeometry) {
+                            obj.material.color.setStyle(e.target.value);
+                        }
+                    });
+                },
+                'vegetation-color': (e) => {
+                    scene.traverse(obj => {
+                        if(obj.isMesh && obj.material && obj.geometry instanceof THREE.ConeGeometry) {
+                            obj.material.color.setStyle(e.target.value);
+                        }
+                    });
+                },
+                'structure-color': (e) => {
+                    scene.traverse(obj => {
+                        if(obj.isMesh && obj.material && obj.geometry instanceof THREE.BoxGeometry) {
+                            obj.material.color.setStyle(e.target.value);
+                        }
+                    });
+                }
+            };
+
+            for (const [id, handler] of Object.entries(elements)) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', handler);
+                }
+            }
+        }
+
+        function updateWaterLevel(level) {
+            scene.children.forEach(child => {
+                if(child.userData.isWater) {
+                    child.position.y = level;
                 }
             });
-        });
+        }
+
+        window.addEventListener('DOMContentLoaded', initializeEventListeners);
 
         window.addEventListener('load', () => {
             setTimeout(() => {
@@ -1264,6 +1285,95 @@
             camera.lookAt(player.position);
         }
 
+        function checkCollisions(object) {
+            if (!window.collisionObjects) return false;
+            
+            const objectBox = new THREE.Box3().setFromObject(object);
+            
+            for (const collider of window.collisionObjects) {
+                if (objectBox.intersectsBox(collider.box)) {
+                    return collider;
+                }
+            }
+            
+            return false;
+        }
+
+        function updateCollisions() {
+            if (!player || !window.collisionObjects) return;
+            
+            const collision = checkCollisions(player);
+            if (collision) {
+                switch(collision.type) {
+                    case 'ramp':
+                        player.velocity.y += 0.1;
+                        break;
+                    case 'platform':
+                        player.position.y = collision.mesh.position.y + 1;
+                        player.velocity.y = 0;
+                        player.isGrounded = true;
+                        break;
+                    default:
+                        const pushVector = new THREE.Vector3()
+                            .subVectors(player.position, collision.mesh.position)
+                            .normalize()
+                            .multiplyScalar(0.1);
+                        player.position.add(pushVector);
+                }
+            }
+        }
+
+        function updateProjectiles() {
+            if (window.projectiles) {
+                window.projectiles.forEach((bullet, index) => {
+                    if (bullet.position.y < 0) {
+                        scene.remove(bullet);
+                        window.projectiles.splice(index, 1);
+                        return;
+                    }
+                    
+                    bullet.position.add(bullet.userData.velocity);
+                    
+                    scene.children.forEach(obj => {
+                        if (obj.isMesh && obj !== bullet && obj !== floor) {
+                            const bulletBox = new THREE.Box3().setFromObject(bullet);
+                            const objBox = new THREE.Box3().setFromObject(obj);
+                            
+                            if (bulletBox.intersectsBox(objBox)) {
+                                scene.remove(obj);
+                                scene.remove(bullet);
+                                window.projectiles.splice(index, 1);
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            updateMovingObjects();
+            updateCollisions();
+
+            if (isPlayMode && player) {
+                if (player instanceof Kart) {
+                    player.update();
+                } else {
+                    updatePlayer();
+                }
+                
+                updateProjectiles();
+            }
+            
+            if (window.particleSystem) {
+                window.particleSystem.rotation.y += 0.001;
+            }
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
         animate();
 
         document.getElementById('settings').addEventListener('click', () => {
@@ -1271,48 +1381,83 @@
             panel.classList.toggle('collapsed');
         });
 
-        document.getElementById('player-speed').addEventListener('input', (e) => {
-            moveSpeed = parseFloat(e.target.value);
+        document.querySelectorAll('input[name="camera-mode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentCameraMode = e.target.value;
+                if (isPlayMode) {
+                    if (currentCameraMode === 'karting') {
+                        scene.remove(player);
+                        player = new Kart();
+                        scene.add(player);
+                    } else if (player instanceof Kart) {
+                        scene.remove(player);
+                        player = new Character();
+                        scene.add(player);
+                    }
+                }
+            });
         });
 
-        document.getElementById('jump-height').addEventListener('input', (e) => {
-            if (player) player.jumpForce = parseFloat(e.target.value);
-        });
-
-        document.getElementById('gravity-strength').addEventListener('input', (e) => {
-            if (player) player.gravity = parseFloat(e.target.value);
-        });
-
-        document.getElementById('world-size').addEventListener('input', (e) => {
-            const size = parseFloat(e.target.value);
-            floor.scale.set(size/100, 1, size/100);
-        });
-
-        document.getElementById('enable-day-night').addEventListener('change', (e) => {
-            if (e.target.checked) {
-                startDayNightCycle();
-            } else {
+        document.getElementById('day-night-speed').addEventListener('input', (e) => {
+            if (dayNightCycle) {
                 stopDayNightCycle();
+                startDayNightCycle(parseFloat(e.target.value));
             }
         });
 
-        let dayNightCycle;
-
-        function startDayNightCycle() {
-            const cycleSpeed = 0.001;
+        function startDayNightCycle(speed) {
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            scene.add(light);
+            
             dayNightCycle = setInterval(() => {
-                dirLight.position.applyAxisAngle(new THREE.Vector3(0, 0, 1), cycleSpeed);
-                const intensity = Math.sin(dirLight.position.y) * 0.5 + 0.5;
-                dirLight.intensity = intensity;
+                const time = Date.now() * speed;
+                light.position.x = Math.cos(time) * 100;
+                light.position.y = Math.sin(time) * 100;
+                
+                const intensity = Math.max(0.2, Math.sin(time) + 0.5);
+                light.intensity = intensity;
                 ambientLight.intensity = intensity * 0.5;
-            }, 50);
+            }, 16);
         }
 
         function stopDayNightCycle() {
-            clearInterval(dayNightCycle);
-            dirLight.position.set(50, 50, 50);
-            dirLight.intensity = 0.8;
-            ambientLight.intensity = 0.5;
+            if (dayNightCycle) {
+                clearInterval(dayNightCycle);
+                dayNightCycle = null;
+            }
+        }
+
+        function updateParticleDensity(density) {
+            if (window.particleSystem) {
+                scene.remove(window.particleSystem);
+            }
+            
+            const particleGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(density * 3);
+            const colors = new Float32Array(density * 3);
+            
+            for (let i = 0; i < density; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 100;
+                positions[i * 3 + 1] = Math.random() * 50;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 100;
+                
+                colors[i * 3] = Math.random();
+                colors[i * 3 + 1] = Math.random();
+                colors[i * 3 + 2] = Math.random();
+            }
+            
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6
+            });
+            
+            window.particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(window.particleSystem);
         }
     </script>
 </body>
