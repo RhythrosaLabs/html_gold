@@ -2566,4 +2566,74 @@
                     });
                     dragControls.addEventListener('dragend', function () {
                         object.isDragging = false;
-                        controls.enab
+                        controls.enabled = true;
+});
+});
+});
+}
+
+// Close initializeEventListeners function
+}
+
+// Initialize Event Listeners
+initializeEventListeners();
+
+// === Handle Window Resize ===
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// === Settings Panel Toggle ===
+const settingsHeader = document.querySelector('.settings-header');
+settingsHeader.addEventListener('click', () => {
+    document.querySelector('.settings-panel').classList.toggle('collapsed');
+});
+
+// === Upload Modal Close on Escape ===
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && uploadModal.classList.contains('show')) {
+        uploadModal.classList.remove('show');
+    }
+});
+
+// === Close Property Panel with Escape ===
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && propertyPanel.style.display === 'block') {
+        propertyPanel.style.display = 'none';
+        selectedObject = null;
+    }
+});
+
+// === Initialize OrbitControls ===
+controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+
+// === Listen for Key Presses for Player Control ===
+document.addEventListener('keydown', (e) => {
+    keysPressed[e.key.toLowerCase()] = true;
+});
+
+document.addEventListener('keyup', (e) => {
+    keysPressed[e.key.toLowerCase()] = false;
+});
+
+// === Escape Key to Exit Play Mode ===
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isPlayMode) {
+        isPlayMode = false;
+        document.getElementById('toolbar').style.display = 'grid';
+        document.querySelector('.settings-panel').style.display = 'flex';
+        document.getElementById('escape-hint').style.display = 'none';
+        camera.position.set(0, 30, 50);
+        camera.lookAt(scene.position);
+    }
+});
+
+// === End of Script ===
+        </script>
+    </body>
+    </html>
+
