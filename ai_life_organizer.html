@@ -1,0 +1,1120 @@
+<html><head><base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Life Organizer</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/@mantine/core@7.1.5/dist/styles.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #2D5BFF;
+      --secondary: #6C63FF;
+      --background: #f8f9fc;
+      --text: #000;
+      --text-inverse: #fff;
+      --border: #eee;
+      --component-bg: #fff;
+    }
+
+    /* Dark mode variables */
+    [data-theme="dark"] {
+      --primary: #4D7FFF;
+      --secondary: #8C85FF;
+      --background: #1a1b1e;
+      --text: #fff;
+      --text-inverse: #000;
+      --border: #2c2e33;
+      --component-bg: #25262b;
+    }
+
+    @keyframes gradientAnimation {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Inter', sans-serif;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      transition: margin-left 0.3s ease; /* Add transition */
+    }
+
+    .container.chat-open {
+      margin-left: 350px; /* Match chat panel width */
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      border-radius: 15px;
+      background: linear-gradient(-45deg, var(--primary), var(--secondary), #4D7FFF, #8C85FF);
+      background-size: 400% 400%;
+      animation: gradientAnimation 15s ease infinite;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-header h1 {
+      color: var(--text-inverse);
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .assistant-avatar {
+      width: 60px;
+      height: 60px;
+      margin-right: 1.5rem;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .app-header::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+      pointer-events: none;
+    }
+
+    /* Update dark mode specific styles */
+    [data-theme="dark"] .app-header {
+      background: linear-gradient(-45deg, #4D7FFF, #8C85FF, #6C63FF, #2D5BFF);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .input-container {
+      display: flex;
+      gap: 1.5rem;
+      margin: 2rem auto;
+      max-width: 800px;
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 1rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    .app-sections {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 25px;
+      margin-top: 30px;
+    }
+
+    #todoSection {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+    }
+
+    #calendarSection {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+
+    #remindersSection {
+      grid-column: 3;
+      grid-row: 1;
+    }
+
+    #notesSection {
+      grid-column: 3;
+      grid-row: 2;
+    }
+
+    .section {
+      background: var(--component-bg);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      height: fit-content;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .section-header {
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 1rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.3rem;
+      margin: 0;
+    }
+
+    .todo-item, .reminder-item, .note-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--component-bg);
+    }
+
+    .todo-item input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+    .todo-text, .reminder-text, .note-text {
+      flex: 1;
+      padding: 5px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .todo-text:focus, .reminder-text:focus, .note-text:focus {
+      outline: 1px solid var(--primary);
+      background: #fff;
+    }
+
+    .delete-btn {
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #calendar {
+      height: 600px;
+      margin-top: 10px;
+    }
+
+    #todoList, #remindersList, #notesList {
+      overflow-y: auto;
+      flex-grow: 1;
+      padding-right: 5px;
+    }
+
+    #todoList::-webkit-scrollbar,
+    #remindersList::-webkit-scrollbar,
+    #notesList::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #todoList::-webkit-scrollbar-track,
+    #remindersList::-webkit-scrollbar-track,
+    #notesList::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    #todoList::-webkit-scrollbar-thumb,
+    #remindersList::-webkit-scrollbar-thumb,
+    #notesList::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+    }
+
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      margin: 10px 0;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+    }
+
+    /* Theme switch styles */
+    .theme-switch {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      background: var(--component-bg);
+      padding: 8px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    /* Chat panel styles */
+    .chat-panel {
+      position: fixed;
+      left: -350px;
+      top: 0;
+      bottom: 0;
+      width: 350px;
+      background: var(--component-bg);
+      transition: left 0.3s ease;
+      z-index: 1000;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      display: flex; /* Add flex display */
+      flex-direction: column; /* Stack children vertically */
+    }
+
+    .chat-panel.open {
+      left: 0;
+    }
+
+    .chat-toggle {
+      position: absolute;
+      right: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 10px;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+    }
+
+    .chat-messages {
+      flex: 1; /* Take remaining space */
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .chat-input {
+      padding: 20px;
+      background: var(--component-bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--component-bg);
+      color: var(--text);
+    }
+
+    .chat-input button {
+      padding: 8px 15px;
+    }
+
+    /* File manager styles */
+    .file-manager {
+      background: var(--component-bg);
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .file-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .file-item {
+      background: var(--component-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .file-icon {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 10px;
+    }
+
+    /* Chat message styles */
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 80%;
+    }
+
+    .message.user {
+      background: var(--primary);
+      color: white;
+      margin-left: auto;
+    }
+
+    .message.ai {
+      background: var(--component-bg);
+      border: 1px solid var(--border);
+      margin-right: auto;
+    }
+
+    .message.error {
+      background: #ff4444;
+      color: white;
+      margin-right: auto;
+    }
+
+    .typing-indicator {
+      margin: 10px 0;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .typing-indicator .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-switch" onclick="toggleTheme()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </div>
+
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-toggle" onclick="toggleChat()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Type a message...">
+      <button onclick="sendChatMessage()">Send</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="app-header">
+      <svg class="assistant-avatar" viewBox="0 0 50 50">
+        <defs>
+          <linearGradient id="avatarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#f0f0f0;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <circle cx="25" cy="25" r="20" fill="url(#avatarGradient)" />
+        <circle cx="18" cy="20" r="3" fill="var(--primary)" />
+        <circle cx="32" cy="20" r="3" fill="var(--primary)" />
+        <path d="M16 30 Q25 40 34 30" stroke="var(--primary)" fill="none" stroke-width="2" />
+      </svg>
+      <h1>AI Life Organizer</h1>
+    </div>
+
+    <div class="input-container">
+      <input type="text" id="userInput" placeholder="Ask me to plan anything! (e.g., 'Plan my work week', 'Organize my project', 'Create a study schedule')">
+      <button id="submitButton">Ask AI</button>
+    </div>
+
+    <div class="typing-indicator" id="typingIndicator">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <div class="app-sections">
+      <div class="section" id="todoSection">
+        <div class="section-header">
+          <h2>To-Do List</h2>
+          <button onclick="addTodo('')">+ Add Task</button>
+        </div>
+        <div id="todoList"></div>
+      </div>
+
+      <div class="section" id="calendarSection">
+        <div class="section-header">
+          <h2>Calendar</h2>
+        </div>
+        <div id="calendar"></div>
+      </div>
+
+      <div class="section" id="remindersSection">
+        <div class="section-header">
+          <h2>Reminders</h2>
+          <button onclick="addReminder('')">+ Add Reminder</button>
+        </div>
+        <div id="remindersList"></div>
+      </div>
+
+      <div class="section" id="notesSection">
+        <div class="section-header">
+          <h2>Notes</h2>
+          <button onclick="addNote('')">+ Add Note</button>
+        </div>
+        <div id="notesList"></div>
+      </div>
+
+      <div class="section file-manager">
+        <div class="section-header">
+          <h2>Files</h2>
+          <button onclick="uploadFile()">+ Upload File</button>
+        </div>
+        <div class="file-list" id="fileList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+
+  <script>
+    let calendar;
+    let todos = [];
+    let reminders = [];
+    let notes = [];
+    let files = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const calendarEl = document.getElementById('calendar');
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        initialDate: new Date(),
+        height: 'auto',
+        editable: true,
+        selectable: true,
+        selectMirror: true,
+        dayMaxEvents: true,
+        events: [],
+        select: function(info) {
+          const title = prompt('Enter event title:');
+          if (title) {
+            calendar.addEvent({
+              title: title,
+              start: info.start,
+              end: info.end,
+              allDay: info.allDay
+            });
+            saveData();
+          }
+          calendar.unselect();
+        },
+        eventClick: function(info) {
+          if (confirm('Would you like to edit this event?')) {
+            const newTitle = prompt('Edit event title:', info.event.title);
+            if (newTitle) {
+              info.event.setProp('title', newTitle);
+            }
+          } else if (confirm('Would you like to delete this event?')) {
+            info.event.remove();
+          }
+          saveData();
+        },
+        eventDrop: function() {
+          saveData();
+        },
+        eventResize: function() {
+          saveData();
+        }
+      });
+      
+      calendar.render();
+      
+      setupEventHandlers();
+      loadData();
+      addDefaultItems();
+      loadFiles();
+    });
+
+    function setupEventHandlers() {
+      document.getElementById('submitButton').addEventListener('click', handleAIRequest);
+      document.getElementById('userInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          handleAIRequest();
+        }
+      });
+    }
+
+    function getCurrentSiteContent() {
+      // Gather all current content from different sections
+      const currentContent = {
+        todos: todos.map(todo => ({
+          text: todo.text,
+          completed: todo.completed
+        })),
+        reminders: reminders.map(reminder => ({
+          text: reminder.text
+        })),
+        notes: notes.map(note => ({
+          text: note.text  
+        })),
+        events: calendar.getEvents().map(event => ({
+          title: event.title,
+          start: event.start.toISOString(),
+          end: event.end ? event.end.toISOString() : null
+        })),
+        files: files.map(file => ({
+          name: file.name,
+          type: file.type
+        }))
+      };
+      return currentContent;
+    }
+
+    async function handleAIRequest() {
+      const userInput = document.getElementById('userInput');
+      const typingIndicator = document.getElementById('typingIndicator');
+      
+      if (!userInput.value.trim()) return;
+
+      typingIndicator.style.display = 'flex';
+
+      try {
+        const response = await getAIResponse(userInput.value);
+        processAIResponse(response);
+      } catch (error) {
+        console.error('Error:', error);
+      }
+
+      typingIndicator.style.display = 'none';
+      userInput.value = '';
+    }
+
+    async function getAIResponse(userPrompt) {
+      try {
+        const response = await fetch('/api/ai_completion', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: `Act as an AI life organizer assistant. For ANY input, always provide organized planning across all four sections: todos, calendar events, reminders, and notes. Even if the user's request seems specific to one area, think holistically and provide related items for all sections.
+
+Based on the user's input "${userPrompt}", provide comprehensive planning across all sections.
+        
+<typescript-interface>
+interface Response {
+  todos: string[];
+  events: Array<{
+    title: string;
+    start: string;
+    end: string;
+  }>;
+  reminders: string[];
+  notes: string[];
+  message: string;
+}
+</typescript-interface>
+        
+<example>
+{
+  "todos": [
+    "Research presentation topics",
+    "Prepare slide outline",
+    "Schedule team reviews"
+  ],
+  "events": [{
+    "title": "Team Presentation",
+    "start": "2023-10-20T10:00:00",
+    "end": "2023-10-20T11:00:00"
+  },
+  {
+    "title": "Review Meeting",
+    "start": "2023-10-19T14:00:00",
+    "end": "2023-10-19T15:00:00"
+  }],
+  "reminders": [
+    "Send presentation draft by Thursday",
+    "Confirm meeting room booking",
+    "Prepare handouts"
+  ],
+  "notes": [
+    "Key presentation points:\n- Market analysis\n- Growth projections\n- Action items",
+    "Questions to address:\n- Timeline\n- Budget\n- Resources"
+  ],
+  "message": "I've created a comprehensive plan across all sections for your presentation preparation."
+}
+</example>`,
+            data: userPrompt
+          }),
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Error:', error);
+        return {
+          message: "I apologize, but I'm having trouble processing your request right now. Please try again.",
+        };
+      }
+    }
+
+    function processAIResponse(response) {
+      if (response.todos?.length > 0 && response.events?.length > 0 && 
+          response.reminders?.length > 0 && response.notes?.length > 0) {
+        todos = [];
+        reminders = [];
+        notes = [];
+        calendar.removeAllEvents();
+      }
+
+      if (response.todos) {
+        response.todos.forEach(todo => addTodo(todo));
+      }
+      
+      if (response.events && calendar) {
+        try {
+          response.events.forEach(event => {
+            const startDate = new Date(event.start);
+            const endDate = event.end ? new Date(event.end) : new Date(startDate.getTime() + 3600000);
+
+            calendar.addEvent({
+              title: event.title,
+              start: startDate,
+              end: endDate,
+              allDay: false,
+              editable: true,
+              backgroundColor: getEventColor(event.title)
+            });
+          });
+          
+          if (response.events.length > 0) {
+            calendar.gotoDate(new Date(response.events[0].start));
+          }
+        } catch (error) {
+          console.error('Error processing calendar events:', error);
+        }
+      }
+      
+      if (response.reminders) {
+        response.reminders.forEach(reminder => addReminder(reminder));
+      }
+      if (response.notes) {
+        response.notes.forEach(note => addNote(note));
+      }
+      
+      saveData();
+    }
+
+    function getEventColor(title) {
+      const lowercaseTitle = title.toLowerCase();
+      if (lowercaseTitle.includes('meeting')) return '#4285f4';
+      if (lowercaseTitle.includes('deadline')) return '#ea4335';
+      if (lowercaseTitle.includes('reminder')) return '#fbbc04';
+      if (lowercaseTitle.includes('task')) return '#34a853';
+      return '#6C63FF';
+    }
+
+    function addDefaultItems() {
+      if (todos.length === 0) {
+        addTodo('Add your first task here...');
+      }
+      if (reminders.length === 0) {
+        addReminder('Add your first reminder here...');
+      }
+      if (notes.length === 0) {
+        addNote('Add your first note here...');
+      }
+    }
+
+    function addTodo(text) {
+      const todo = {
+        id: Date.now(),
+        text: text,
+        completed: false
+      };
+      todos.push(todo);
+      renderTodos();
+      saveData();
+    }
+
+    function addReminder(text) {
+      const reminder = {
+        id: Date.now(),
+        text: text
+      };
+      reminders.push(reminder);
+      renderReminders();
+      saveData();
+    }
+
+    function addNote(text) {
+      const note = {
+        id: Date.now(),
+        text: text
+      };
+      notes.push(note);
+      renderNotes();
+      saveData();
+    }
+
+    function renderTodos() {
+      const todoList = document.getElementById('todoList');
+      todoList.innerHTML = todos.map(todo => `
+        <div class="todo-item">
+          <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodo(${todo.id})">
+          <input type="text" class="todo-text" value="${todo.text}" onchange="updateTodo(${todo.id}, this.value)">
+          <button class="delete-btn" onclick="deleteTodo(${todo.id})">×</button>
+        </div>
+      `).join('');
+    }
+
+    function renderReminders() {
+      const remindersList = document.getElementById('remindersList');
+      remindersList.innerHTML = reminders.map(reminder => `
+        <div class="reminder-item">
+          <input type="text" class="reminder-text" value="${reminder.text}" onchange="updateReminder(${reminder.id}, this.value)">
+          <button class="delete-btn" onclick="deleteReminder(${reminder.id})">×</button>
+        </div>
+      `).join('');
+    }
+
+    function renderNotes() {
+      const notesList = document.getElementById('notesList');
+      notesList.innerHTML = notes.map(note => `
+        <div class="note-item">
+          <textarea class="note-text" onchange="updateNote(${note.id}, this.value)">${note.text}</textarea>
+          <button class="delete-btn" onclick="deleteNote(${note.id})">×</button>
+        </div>
+      `).join('');
+    }
+
+    function toggleTodo(id) {
+      const todo = todos.find(t => t.id === id);
+      if (todo) {
+        todo.completed = !todo.completed;
+        saveData();
+      }
+    }
+
+    function updateTodo(id, newText) {
+      const todo = todos.find(t => t.id === id);
+      if (todo) {
+        todo.text = newText;
+        saveData();
+      }
+    }
+
+    function deleteTodo(id) {
+      todos = todos.filter(t => t.id !== id);
+      renderTodos();
+      saveData();
+    }
+
+    function updateReminder(id, newText) {
+      const reminder = reminders.find(r => r.id === id);
+      if (reminder) {
+        reminder.text = newText;
+        saveData();
+      }
+    }
+
+    function deleteReminder(id) {
+      reminders = reminders.filter(r => r.id !== id);
+      renderReminders();
+      saveData();
+    }
+
+    function updateNote(id, newText) {
+      const note = notes.find(n => n.id === id);
+      if (note) {
+        note.text = newText;
+        saveData();
+      }
+    }
+
+    function deleteNote(id) {
+      notes = notes.filter(n => n.id === id);
+      renderNotes();
+      saveData();
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const messages = document.getElementById('chatMessages');
+      
+      if (input.value.trim()) {
+        // Add user message to chat
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user';
+        messageDiv.textContent = input.value;
+        messages.appendChild(messageDiv);
+        
+        const userMessage = input.value;
+        input.value = '';
+
+        // Show typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+        messages.appendChild(typingDiv);
+        
+        try {
+          // Get current site content
+          const currentContent = getCurrentSiteContent();
+          
+          // Get AI response with context
+          const response = await fetch('/api/ai_completion', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              prompt: `You are an AI assistant helping a user with their life organization. 
+              Consider the current content of their planner:
+              
+              Current Todos: ${JSON.stringify(currentContent.todos)}
+              Current Reminders: ${JSON.stringify(currentContent.reminders)}
+              Current Notes: ${JSON.stringify(currentContent.notes)}
+              Current Events: ${JSON.stringify(currentContent.events)}
+              Current Files: ${JSON.stringify(currentContent.files)}
+              
+              Based on this context and the user's message: "${userMessage}", 
+              provide a helpful response and suggest any relevant changes or additions to their planner.
+              
+              <typescript-interface>
+              interface Response {
+                message: string;
+                suggestions?: {
+                  todos?: string[];
+                  reminders?: string[];
+                  notes?: string[];
+                  events?: Array<{
+                    title: string;
+                    start: string;
+                    end: string;
+                  }>;
+                };
+              }
+              </typescript-interface>`,
+              data: {
+                message: userMessage,
+                currentContent: currentContent
+              }
+            }),
+          });
+          
+          const aiResponse = await response.json();
+          
+          // Remove typing indicator
+          typingDiv.remove();
+          
+          // Add AI response to chat
+          const aiMessageDiv = document.createElement('div');
+          aiMessageDiv.className = 'message ai';
+          aiMessageDiv.textContent = aiResponse.message;
+          messages.appendChild(aiMessageDiv);
+          
+          // Process any suggested changes
+          if (aiResponse.suggestions) {
+            processAIResponse(aiResponse.suggestions);
+          }
+          
+          // Scroll to bottom
+          messages.scrollTop = messages.scrollHeight;
+          
+        } catch (error) {
+          console.error('Error in chat:', error);
+          typingDiv.remove();
+          
+          // Add error message
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'message error';
+          errorDiv.textContent = 'Sorry, I encountered an error processing your message.';
+          messages.appendChild(errorDiv);
+        }
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('todos', JSON.stringify(todos));
+      localStorage.setItem('reminders', JSON.stringify(reminders));
+      localStorage.setItem('notes', JSON.stringify(notes));
+      
+      const events = calendar.getEvents().map(event => ({
+        title: event.title,
+        start: event.start.toISOString(),
+        end: event.end ? event.end.toISOString() : null,
+        allDay: event.allDay,
+        backgroundColor: event.backgroundColor
+      }));
+      localStorage.setItem('events', JSON.stringify(events));
+
+      // Store file metadata in localStorage
+      const fileMetadata = files.map(file => ({
+        name: file.name,
+        type: file.type,
+        size: file.size
+      }));
+      localStorage.setItem('files', JSON.stringify(fileMetadata));
+    }
+
+    function loadData() {
+      todos = JSON.parse(localStorage.getItem('todos')) || [];
+      reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+      notes = JSON.parse(localStorage.getItem('notes')) || [];
+      
+      try {
+        const savedEvents = JSON.parse(localStorage.getItem('events')) || [];
+        if (calendar && typeof calendar.removeAllEvents === 'function') {
+          calendar.removeAllEvents();
+          savedEvents.forEach(event => {
+            if (event.start && event.title) {
+              calendar.addEvent({
+                title: event.title,
+                start: new Date(event.start),
+                end: event.end ? new Date(event.end) : null,
+                allDay: event.allDay || false,
+                backgroundColor: event.backgroundColor || getEventColor(event.title)
+              });
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error loading calendar events:', error);
+      }
+
+      renderTodos();
+      renderReminders();
+      renderNotes();
+    }
+
+    function uploadFile() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = true;
+      
+      input.onchange = (e) => {
+        const newFiles = Array.from(e.target.files);
+        files = [...files, ...newFiles];
+        renderFiles();
+        saveData();
+      };
+      
+      input.click();
+    }
+
+    function renderFiles() {
+      const fileList = document.getElementById('fileList');
+      fileList.innerHTML = files.map((file, index) => `
+        <div class="file-item" onclick="downloadFile(${index})">
+          <svg class="file-icon" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <div>${file.name}</div>
+        </div>
+      `).join('');
+    }
+
+    function loadFiles() {
+      const savedFiles = JSON.parse(localStorage.getItem('files')) || [];
+      files = savedFiles;
+      renderFiles();
+    }
+
+    // Add downloadFile function
+    function downloadFile(index) {
+      const file = files[index];
+      if (!file) return;
+
+      // Create a URL for the file
+      const url = URL.createObjectURL(file);
+      
+      // Create temporary link element
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.name; // Set the file name
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    // Theme functionality
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Chat functionality
+    function toggleChat() {
+      const chatPanel = document.getElementById('chatPanel');
+      const container = document.querySelector('.container');
+      
+      chatPanel.classList.toggle('open');
+      container.classList.toggle('chat-open');
+      
+      // Trigger window resize to update calendar sizing
+      window.dispatchEvent(new Event('resize'));
+    }
+  </script>
+</body></html>
